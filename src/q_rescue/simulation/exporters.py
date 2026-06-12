@@ -12,7 +12,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from q_rescue.domain.models import Ambulance, Hospital, Incident
 from q_rescue.simulation.cost_matrix import CostMatrix
 from q_rescue.simulation.generator import DisasterScenario
 

@@ -19,7 +19,6 @@ of ``configs/default.toml``). Missing keys fall back to safe defaults.
 
 from __future__ import annotations
 
-import random as _random_module
 from random import Random
 
 from q_rescue.domain.models import (
