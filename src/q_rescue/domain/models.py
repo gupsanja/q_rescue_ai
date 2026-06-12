@@ -83,8 +83,8 @@ class Hospital:
     id: str
     name: str
     location: Location
-    capacity: int          # total licensed bed count
-    available_beds: int    # beds available at simulation start
+    capacity: int  # total licensed bed count
+    available_beds: int  # beds available at simulation start
 
 
 @dataclass(frozen=True)

@@ -6,9 +6,7 @@ class GreedyAllocator:
 
     name = "classical-greedy"
 
-    def solve(
-        self, ambulances: list[Ambulance], incidents: list[Incident]
-    ) -> OptimizationResult:
+    def solve(self, ambulances: list[Ambulance], incidents: list[Incident]) -> OptimizationResult:
         available = {ambulance.id: ambulance for ambulance in ambulances}
         assignments: list[Assignment] = []
 
@@ -28,4 +26,3 @@ class GreedyAllocator:
             objective_value=sum(item.distance for item in assignments),
             solver_name=self.name,
         )
-

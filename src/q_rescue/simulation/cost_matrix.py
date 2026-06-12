@@ -100,6 +100,7 @@ class CostMatrix:
 # Factory
 # ------------------------------------------------------------------
 
+
 def build_cost_matrix(
     scenario: DisasterScenario,
     distance_weight: float = 1.0,
@@ -132,7 +133,7 @@ def build_cost_matrix(
     dist = distance_fn if distance_fn is not None else _haversine
 
     ambulance_ids = [a.id for a in scenario.ambulances]
-    incident_ids  = [i.id for i in scenario.incidents]
+    incident_ids = [i.id for i in scenario.incidents]
 
     matrix: dict[str, dict[str, float]] = {}
     distances: dict[str, dict[str, float]] = {}

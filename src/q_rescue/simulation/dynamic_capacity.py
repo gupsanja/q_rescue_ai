@@ -30,18 +30,18 @@ def simulate_hospital_load(
     """
     # Pressure factor scales with incident count (10 incidents = +5% occupancy)
     pressure_factor = (incident_count / 10.0) * 0.05
-    
+
     updated_hospitals = []
     for h in hospitals:
         # Each hospital has slightly different background pressure (+/- 10%)
         variance = rng.uniform(-0.10, 0.10)
-        
+
         target_occupancy = base_occupancy_pct + pressure_factor + variance
         # Cap at 100% occupancy (0 available beds)
         target_occupancy = min(1.0, max(0.0, target_occupancy))
-        
+
         available = int(h.capacity * (1.0 - target_occupancy))
-        
+
         updated_hospitals.append(
             Hospital(
                 id=h.id,
@@ -51,5 +51,5 @@ def simulate_hospital_load(
                 available_beds=available,
             )
         )
-        
+
     return updated_hospitals

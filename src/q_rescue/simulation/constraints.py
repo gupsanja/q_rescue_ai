@@ -50,7 +50,7 @@ class OperationalConstraints:
         default_factory=lambda: {
             "one_ambulance_per_incident": "Σᵢ xᵢⱼ ≤ 1  ∀j",
             "one_incident_per_ambulance": "Σⱼ xᵢⱼ ≤ 1  ∀i",
-            "hospital_capacity_limit":    "Σ incidents(j→h) ≤ beds(h)",
+            "hospital_capacity_limit": "Σ incidents(j→h) ≤ beds(h)",
         },
         repr=False,
     )

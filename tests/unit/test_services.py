@@ -9,4 +9,3 @@ def test_poc_comparison_runs_end_to_end() -> None:
 
     assert set(comparison) == {"classical", "quantum"}
     assert comparison["quantum"]["result"].feasible
-

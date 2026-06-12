@@ -12,9 +12,7 @@ class QuantumAllocator:
         self.builder = builder or AmbulanceAllocationQuboBuilder()
         self.solver = solver or ExactQuboSolver()
 
-    def solve(
-        self, ambulances: list[Ambulance], incidents: list[Incident]
-    ) -> OptimizationResult:
+    def solve(self, ambulances: list[Ambulance], incidents: list[Incident]) -> OptimizationResult:
         model = self.builder.build(ambulances, incidents)
         sample, objective_value = self.solver.solve(model)
         ambulance_by_id = {item.id: item for item in ambulances}
@@ -45,4 +43,3 @@ class QuantumAllocator:
         return len(ambulance_ids) == len(set(ambulance_ids)) and len(incident_ids) == len(
             set(incident_ids)
         )
-

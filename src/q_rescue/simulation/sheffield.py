@@ -69,21 +69,22 @@ SHEFFIELD_HOSPITALS: list[Hospital] = [
 
 # Flood-risk zones along the Don and Sheaf river valleys
 FLOOD_ZONES: list[Location] = [
-    Location(53.3883, -1.4690),   # Don Valley (Meadowhall area)
-    Location(53.3600, -1.4700),   # Sheaf Valley (city centre south)
-    Location(53.4100, -1.4200),   # Blackburn Meadows (lower Don)
+    Location(53.3883, -1.4690),  # Don Valley (Meadowhall area)
+    Location(53.3600, -1.4700),  # Sheaf Valley (city centre south)
+    Location(53.4100, -1.4200),  # Blackburn Meadows (lower Don)
 ]
 
 # Industrial/chemical incident zones
 INDUSTRIAL_ZONES: list[Location] = [
-    Location(53.3950, -1.4100),   # Tinsley industrial estate
-    Location(53.3750, -1.4150),   # Attercliffe corridor
+    Location(53.3950, -1.4100),  # Tinsley industrial estate
+    Location(53.3750, -1.4150),  # Attercliffe corridor
 ]
 
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def validate_coordinates(lat: float, lon: float) -> bool:
     """Return True if the coordinates fall within Sheffield's bounding box."""

@@ -42,6 +42,7 @@ from q_rescue.simulation.sheffield import (
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _cfg(config: dict, *keys: str, default: object) -> object:
     """Safely traverse nested config dict and return a fallback if missing."""
     node: object = config
@@ -54,14 +55,11 @@ def _cfg(config: dict, *keys: str, default: object) -> object:
 
 def _generate_ambulances(rng: Random, count: int) -> list[Ambulance]:
     return [
-        Ambulance(id=f"A{i + 1}", location=random_sheffield_location(rng))
-        for i in range(count)
+        Ambulance(id=f"A{i + 1}", location=random_sheffield_location(rng)) for i in range(count)
     ]
 
 
-def _apply_capacity_multiplier(
-    hospitals: list[Hospital], multiplier: float
-) -> list[Hospital]:
+def _apply_capacity_multiplier(hospitals: list[Hospital], multiplier: float) -> list[Hospital]:
     """Return a new list of hospitals with available_beds scaled by multiplier."""
     return [
         Hospital(
@@ -79,6 +77,7 @@ def _apply_capacity_multiplier(
 # Scenario generators
 # ---------------------------------------------------------------------------
 
+
 def generate_generic_scenario(
     config: dict | None = None,
     seed: int = 42,
@@ -90,7 +89,7 @@ def generate_generic_scenario(
     config = config or {}
     rng = Random(seed)
     num_ambulances = int(_cfg(config, "simulation", "ambulances", default=3))  # type: ignore[arg-type]
-    num_incidents  = int(_cfg(config, "simulation", "incidents",  default=5))  # type: ignore[arg-type]
+    num_incidents = int(_cfg(config, "simulation", "incidents", default=5))  # type: ignore[arg-type]
 
     ambulances = _generate_ambulances(rng, num_ambulances)
     incidents = [
@@ -124,9 +123,9 @@ def generate_flood_scenario(
     """
     config = config or {}
     rng = Random(seed)
-    num_ambulances  = int(_cfg(config, "simulation", "ambulances",        default=3))    # type: ignore[arg-type]
-    num_incidents   = int(_cfg(config, "simulation", "incidents",          default=5))    # type: ignore[arg-type]
-    cluster_radius  = float(_cfg(config, "simulation", "cluster_radius_km", default=1.0)) # type: ignore[arg-type]
+    num_ambulances = int(_cfg(config, "simulation", "ambulances", default=3))  # type: ignore[arg-type]
+    num_incidents = int(_cfg(config, "simulation", "incidents", default=5))  # type: ignore[arg-type]
+    cluster_radius = float(_cfg(config, "simulation", "cluster_radius_km", default=1.0))  # type: ignore[arg-type]
 
     ambulances = _generate_ambulances(rng, num_ambulances)
 
@@ -180,9 +179,9 @@ def generate_industrial_scenario(
     """
     config = config or {}
     rng = Random(seed)
-    num_ambulances = int(_cfg(config, "simulation", "ambulances",        default=3))    # type: ignore[arg-type]
-    num_incidents  = int(_cfg(config, "simulation", "incidents",          default=5))    # type: ignore[arg-type]
-    cluster_radius = float(_cfg(config, "simulation", "cluster_radius_km", default=0.5)) # type: ignore[arg-type]
+    num_ambulances = int(_cfg(config, "simulation", "ambulances", default=3))  # type: ignore[arg-type]
+    num_incidents = int(_cfg(config, "simulation", "incidents", default=5))  # type: ignore[arg-type]
+    cluster_radius = float(_cfg(config, "simulation", "cluster_radius_km", default=0.5))  # type: ignore[arg-type]
 
     ambulances = _generate_ambulances(rng, num_ambulances)
 
@@ -252,7 +251,7 @@ def generate_city_wide_scenario(
     rng = Random(seed)
     num_ambulances = int(_cfg(config, "simulation", "ambulances", default=3))  # type: ignore[arg-type]
     # City-wide scenarios use double the configured incident count
-    num_incidents  = int(_cfg(config, "simulation", "incidents",  default=5)) * 2  # type: ignore[arg-type]
+    num_incidents = int(_cfg(config, "simulation", "incidents", default=5)) * 2  # type: ignore[arg-type]
 
     ambulances = _generate_ambulances(rng, num_ambulances)
     incidents = [
@@ -279,8 +278,8 @@ def generate_city_wide_scenario(
 # ---------------------------------------------------------------------------
 
 _GENERATORS = {
-    DisasterCategory.GENERIC:             generate_generic_scenario,
-    DisasterCategory.FLOOD:               generate_flood_scenario,
+    DisasterCategory.GENERIC: generate_generic_scenario,
+    DisasterCategory.FLOOD: generate_flood_scenario,
     DisasterCategory.INDUSTRIAL_ACCIDENT: generate_industrial_scenario,
     DisasterCategory.CITY_WIDE_EMERGENCY: generate_city_wide_scenario,
 }

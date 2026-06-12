@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 try:
     import networkx as nx
     import osmnx as ox
+
     HAS_OSMNX = True
 except ImportError:
     HAS_OSMNX = False
@@ -50,8 +51,7 @@ class SheffieldRoadNetwork:
         """
         if not HAS_OSMNX:
             raise ImportError(
-                "osmnx is required for road network routing. "
-                "Install with: pip install '.[geo]'"
+                "osmnx is required for road network routing. Install with: pip install '.[geo]'"
             )
 
         if self._graph is not None:
@@ -66,13 +66,12 @@ class SheffieldRoadNetwork:
             logger.info("Downloading Sheffield road network (this may take a minute)...")
             ox.settings.use_cache = True
             ox.settings.log_console = True
-            
+
             # Download graph for Sheffield, UK
             self._graph = ox.graph_from_place(
-                "Sheffield, South Yorkshire, England", 
-                network_type="drive"
+                "Sheffield, South Yorkshire, England", network_type="drive"
             )
-            
+
             logger.info(f"Saving graph to {self.graph_path}...")
             ox.save_graphml(self._graph, self.graph_path)
 
@@ -94,14 +93,9 @@ class SheffieldRoadNetwork:
             dest_node = ox.distance.nearest_nodes(self._graph, destination.y, destination.x)
 
             # Calculate shortest path length (in metres)
-            length_m = nx.shortest_path_length(
-                self._graph, 
-                orig_node, 
-                dest_node, 
-                weight="length"
-            )
+            length_m = nx.shortest_path_length(self._graph, orig_node, dest_node, weight="length")
             return length_m / 1000.0
-            
+
         except Exception as e:
             logger.warning(
                 f"Failed to find route between {origin} and {destination}: {e}. "
@@ -109,7 +103,9 @@ class SheffieldRoadNetwork:
             )
             return haversine_distance(origin, destination)
 
-    def travel_time_minutes(self, origin: Location, destination: Location, speed_kmh: float = 50.0) -> float:
+    def travel_time_minutes(
+        self, origin: Location, destination: Location, speed_kmh: float = 50.0
+    ) -> float:
         """Estimate travel time in minutes based on distance and average speed."""
         distance_km = self.shortest_path_distance(origin, destination)
         hours = distance_km / speed_kmh
