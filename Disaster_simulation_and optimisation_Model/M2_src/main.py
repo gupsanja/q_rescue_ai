@@ -26,6 +26,7 @@ def main() -> None:
 
     seed = int(config.get("simulation", {}).get("seed", 42))
 
+
     # 2. Generate scenario
     print(f"Generating {category.value} scenario (seed={seed})...")
     scenario = generate_scenario_by_category(category, config, seed=seed)
@@ -60,4 +61,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()
