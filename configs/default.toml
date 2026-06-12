@@ -1,0 +1,17 @@
+[simulation]
+seed = 42
+ambulances = 3
+incidents = 5
+hospitals = 2
+map_width_km = 20.0
+
+[optimisation]
+distance_weight = 1.0
+severity_weight = 8.0
+constraint_penalty = 100.0
+
+[quantum]
+solver = "exact"
+qaoa_reps = 1
+shots = 1024
+
