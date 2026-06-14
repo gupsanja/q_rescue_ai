@@ -34,9 +34,9 @@ class QuboModel:
 class AmbulanceAllocationQuboBuilder:
     """Build a POC QUBO for one-to-one ambulance/incident assignment.
 
-    Linear costs balance travel distance against severity coverage. Pairwise
-    penalties prevent an ambulance serving multiple incidents and an incident
-    receiving multiple ambulances in the same optimisation period.
+    Linear costs balance travel distance against severity coverage. A
+    cardinality penalty uses as many resources as the smaller input set, while
+    pairwise penalties prevent duplicate ambulance or incident assignments.
     """
 
     def __init__(
@@ -61,6 +61,9 @@ class AmbulanceAllocationQuboBuilder:
                     - self.severity_weight * float(incident.severity)
                 )
 
+        assignment_target = min(len(ambulances), len(incidents))
+        self._add_cardinality_penalty(model, model.variables, assignment_target)
+
         for ambulance in ambulances:
             variables = [(ambulance.id, incident.id) for incident in incidents]
             self._add_exclusion_penalties(model, variables)
@@ -71,9 +74,26 @@ class AmbulanceAllocationQuboBuilder:
 
         return model
 
+    def _add_cardinality_penalty(
+        self,
+        model: QuboModel,
+        variables: list[Variable],
+        target: int,
+    ) -> None:
+        """Add P(target - sum(x))^2 using x^2 = x for binary variables."""
+        penalty = self.constraint_penalty
+        model.constant += penalty * target**2
+
+        for variable in variables:
+            model.linear[variable] += penalty * (1 - 2 * target)
+
+        for left, right in combinations(variables, 2):
+            model.quadratic[(left, right)] = (
+                model.quadratic.get((left, right), 0.0) + 2 * penalty
+            )
+
     def _add_exclusion_penalties(self, model: QuboModel, variables: list[Variable]) -> None:
         for left, right in combinations(variables, 2):
             model.quadratic[(left, right)] = (
                 model.quadratic.get((left, right), 0.0) + self.constraint_penalty
             )
-

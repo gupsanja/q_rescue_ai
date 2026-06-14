@@ -42,3 +42,36 @@ def test_exact_solver_returns_a_feasible_low_cost_sample() -> None:
     assert sample[("A1", "I1")] == 1
     assert value < 0
 
+
+def test_solver_uses_all_available_ambulances_when_incidents_are_available() -> None:
+    ambulances = [
+        Ambulance("A1", Location(0, 0)),
+        Ambulance("A2", Location(10, 0)),
+    ]
+    incidents = [
+        Incident("I1", Location(1, 0), Severity.LOW),
+        Incident("I2", Location(9, 0), Severity.LOW),
+        Incident("I3", Location(100, 100), Severity.LOW),
+    ]
+    model = AmbulanceAllocationQuboBuilder().build(ambulances, incidents)
+
+    sample, _ = ExactQuboSolver().solve(model)
+
+    assert sum(sample.values()) == 2
+
+
+def test_solver_prioritises_critical_incident_when_resources_are_scarce() -> None:
+    ambulances = [Ambulance("A1", Location(0, 0))]
+    incidents = [
+        Incident("I-low", Location(1, 0), Severity.LOW),
+        Incident("I-critical", Location(2, 0), Severity.CRITICAL),
+    ]
+    model = AmbulanceAllocationQuboBuilder(
+        distance_weight=1,
+        severity_weight=8,
+    ).build(ambulances, incidents)
+
+    sample, _ = ExactQuboSolver().solve(model)
+
+    assert sample[("A1", "I-critical")] == 1
+    assert sample[("A1", "I-low")] == 0
