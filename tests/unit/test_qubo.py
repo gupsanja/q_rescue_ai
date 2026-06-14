@@ -39,6 +39,8 @@ def test_exact_solver_returns_a_feasible_low_cost_sample() -> None:
 
     assert sample[("A1", "I1")] == 1
     assert value < 0
+
+
 def test_solver_uses_all_available_ambulances_when_incidents_are_available() -> None:
     ambulances = [
         Ambulance("A1", Location(0, 0)),

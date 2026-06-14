@@ -13,6 +13,7 @@ QuadraticTerm = tuple[Variable, Variable]
 class QuboModel:
     """Framework-neutral QUBO representation: x^T Q x + constant."""
 
+    objective_linear: dict[Variable, float] = field(default_factory=dict)
     linear: dict[Variable, float] = field(default_factory=dict)
     quadratic: dict[QuadraticTerm, float] = field(default_factory=dict)
     constant: float = 0.0
@@ -58,10 +59,11 @@ class AmbulanceAllocationQuboBuilder:
             for incident in incidents:
                 variable = (ambulance.id, incident.id)
                 distance = ambulance.location.distance_to(incident.location)
-                model.linear[variable] = (
-                    self.distance_weight * distance
-                    - self.severity_weight * float(incident.severity)
+                assignment_cost = self.distance_weight * distance - self.severity_weight * float(
+                    incident.severity
                 )
+                model.objective_linear[variable] = assignment_cost
+                model.linear[variable] = assignment_cost
 
         assignment_target = min(len(ambulances), len(incidents))
         self._add_cardinality_penalty(model, model.variables, assignment_target)
@@ -90,9 +92,7 @@ class AmbulanceAllocationQuboBuilder:
             model.linear[variable] += penalty * (1 - 2 * target)
 
         for left, right in combinations(variables, 2):
-            model.quadratic[(left, right)] = (
-                model.quadratic.get((left, right), 0.0) + 2 * penalty
-            )
+            model.quadratic[(left, right)] = model.quadratic.get((left, right), 0.0) + 2 * penalty
 
     def _add_exclusion_penalties(self, model: QuboModel, variables: list[Variable]) -> None:
         for left, right in combinations(variables, 2):
