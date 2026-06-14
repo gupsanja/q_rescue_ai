@@ -48,4 +48,3 @@ class QiskitQAOASolver:
             "Translate QuboModel into a Qiskit QuadraticProgram, run QAOA, "
             "and map the result back to the tuple-based variables."
         )
-

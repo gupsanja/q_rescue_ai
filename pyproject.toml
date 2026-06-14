@@ -21,6 +21,10 @@ quantum = [
   "qiskit-aer>=0.14",
   "qiskit-optimization>=0.6",
 ]
+geo = [
+  "osmnx>=1.9",
+  "networkx>=3.3",
+]
 dev = [
   "pytest>=8.2",
   "ruff>=0.4",
@@ -37,3 +41,5 @@ testpaths = ["tests"]
 line-length = 100
 target-version = "py311"
 
+[tool.pyright]
+extraPaths = ["Disaster_simulation_and optimisation_Model"]
