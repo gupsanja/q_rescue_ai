@@ -22,9 +22,7 @@ def test_exclusion_penalty_discourages_duplicate_ambulance_use() -> None:
         Incident("I1", Location(0, 1), Severity.CRITICAL),
         Incident("I2", Location(0, 2), Severity.CRITICAL),
     ]
-    model = AmbulanceAllocationQuboBuilder(constraint_penalty=100).build(
-        ambulances, incidents
-    )
+    model = AmbulanceAllocationQuboBuilder(constraint_penalty=100).build(ambulances, incidents)
 
     single = model.evaluate({("A1", "I1"): 1, ("A1", "I2"): 0})
     duplicate = model.evaluate({("A1", "I1"): 1, ("A1", "I2"): 1})
@@ -41,8 +39,6 @@ def test_exact_solver_returns_a_feasible_low_cost_sample() -> None:
 
     assert sample[("A1", "I1")] == 1
     assert value < 0
-
-
 def test_solver_uses_all_available_ambulances_when_incidents_are_available() -> None:
     ambulances = [
         Ambulance("A1", Location(0, 0)),

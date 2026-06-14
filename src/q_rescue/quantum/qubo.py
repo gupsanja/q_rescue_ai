@@ -23,7 +23,9 @@ class QuboModel:
 
     def evaluate(self, sample: dict[Variable, int]) -> float:
         value = self.constant
-        value += sum(coefficient * sample.get(variable, 0) for variable, coefficient in self.linear.items())
+        value += sum(
+            coefficient * sample.get(variable, 0) for variable, coefficient in self.linear.items()
+        )
         value += sum(
             coefficient * sample.get(left, 0) * sample.get(right, 0)
             for (left, right), coefficient in self.quadratic.items()

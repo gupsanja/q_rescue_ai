@@ -14,4 +14,3 @@ def compare_allocators(scenario: DisasterScenario) -> dict[str, dict[str, object
         name: {"result": result, "metrics": calculate_metrics(result, scenario.incidents)}
         for name, result in results.items()
     }
-
