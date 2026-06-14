@@ -56,7 +56,7 @@ def test_cost_matrix_aligns_with_qubo_builder():
 
     for a in scenario.ambulances:
         for i in scenario.incidents:
-            qubo_cost = qubo_model.linear[(a.id, i.id)]
+            qubo_cost = qubo_model.objective_linear[(a.id, i.id)]
             matrix_cost = cm.matrix[a.id][i.id]
             assert pytest.approx(qubo_cost) == matrix_cost
 
@@ -80,7 +80,7 @@ def test_haversine_cost_matrix_differs_from_euclidean():
     differences = []
     for a in scenario.ambulances:
         for i in scenario.incidents:
-            qubo_cost = qubo_model.linear[(a.id, i.id)]
+            qubo_cost = qubo_model.objective_linear[(a.id, i.id)]
             haversine_cost = cm_haversine.matrix[a.id][i.id]
             if abs(qubo_cost - haversine_cost) > 1e-6:
                 differences.append((a.id, i.id, qubo_cost, haversine_cost))
