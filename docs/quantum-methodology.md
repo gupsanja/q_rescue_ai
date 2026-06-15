@@ -36,6 +36,33 @@ The solver minimises `Q(x)`. Lower travel distance lowers the score, higher
 severity lowers the score through its reward, and invalid assignments increase
 the score through penalties.
 
+## QAOA workflow
+
+Qiskit converts the binary QUBO into an equivalent Ising Hamiltonian whose
+lowest-energy state represents the best assignment. QAOA prepares and samples
+an approximate low-energy state by alternating two circuit layers:
+
+1. The cost layer applies phases based on the QUBO/Ising objective.
+2. The mixer layer rotates the qubits so the algorithm can explore other binary
+   assignments.
+
+For `p` QAOA repetitions, the circuit has `2p` trainable angles. A classical
+COBYLA optimiser repeatedly updates those angles using sampled objective values.
+The best measured bit string is translated back into ambulance/incident
+assignment variables.
+
+Initial POC configuration:
+
+- QAOA repetitions (`reps`): 1
+- Statevector sampler shots: 1024
+- COBYLA maximum iterations: 100
+- Random seed: 42
+- Initial point: seeded non-zero angles in `[0, 2*pi)`, with length `2 * reps`
+
+`StatevectorSampler` runs locally and samples from an ideal statevector. The
+finite shot count still introduces sampling behaviour, but this is not a noisy
+hardware experiment. Real-device execution and noise modelling are future work.
+
 ## Assumptions for the first POC
 
 - Each ambulance serves at most one incident during one decision window.
