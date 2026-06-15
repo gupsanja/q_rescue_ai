@@ -63,6 +63,53 @@ Initial POC configuration:
 finite shot count still introduces sampling behaviour, but this is not a noisy
 hardware experiment. Real-device execution and noise modelling are future work.
 
+## Classical, exact, and QAOA comparison
+
+All solvers must be evaluated on the same scenario and against the same QUBO.
+The classical greedy allocator normally reports total travel distance, whereas
+the quantum solvers report QUBO energy. These values are not directly
+comparable. For a fair comparison, classical assignments are encoded as a
+binary QUBO sample and evaluated with the same `Q(x)` equation.
+
+The report keeps two categories of measurements separate:
+
+- Operational metrics: average travel distance, incident coverage, critical
+  coverage, assignment feasibility, and runtime.
+- Optimisation metrics: QUBO energy and absolute/relative gap from the exact
+  QUBO optimum.
+
+Because valid QUBO energies can be negative, the relative gap is calculated as:
+
+`100 * (solver_energy - exact_energy) / abs(exact_energy)`
+
+This is reported as a percentage gap rather than as a conventional
+approximation ratio, whose interpretation becomes confusing for negative
+objectives.
+
+### Week 1 POC results
+
+Configuration: 3 ambulances, 5 incidents, 15 binary variables, grid coordinates,
+seed 42, QAOA `reps=1`, 1024 shots, and COBYLA `maxiter=100`.
+
+| Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Classical greedy | -68.643651 | 0.000015 s | 3.785 km | 60% | 100% | Yes |
+| Exact enumeration | -68.643651 | 0.485534 s | 3.785 km | 60% | 100% | Yes |
+| QAOA simulator | -31.075298 | 5.644261 s | 10.975 km | 60% | 50% | Yes |
+
+The classical and exact solvers selected the same assignments: `A1->I1`,
+`A2->I2`, and `A3->I4`. QAOA selected `A1->I4`, `A2->I2`, and `A3->I3`.
+Its absolute energy gap was `37.568353`, or `54.73%` relative to the exact
+energy magnitude.
+
+This result validates that the QUBO can be executed through QAOA and decoded
+into a feasible emergency allocation. It does not demonstrate quantum
+advantage: at this shallow circuit depth, QAOA produced a lower-quality result
+and took longer than both classical methods on the small simulator problem.
+Future experiments should test more repetitions, optimisers, initial points,
+and seeds, while reporting all attempted configurations rather than selecting
+only the best run.
+
 ## Assumptions for the first POC
 
 - Each ambulance serves at most one incident during one decision window.
