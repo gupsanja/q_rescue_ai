@@ -1,6 +1,7 @@
 from q_rescue.domain.models import Ambulance, Assignment, Incident, OptimizationResult
 from q_rescue.quantum.qaoa_solver import ExactQuboSolver, QuboSolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
+from q_rescue.simulation.distance_matrix import DistanceMatrix, SeverityMapping
 
 
 class QuantumAllocator:
@@ -12,18 +13,21 @@ class QuantumAllocator:
         self.builder = builder or AmbulanceAllocationQuboBuilder()
         self.solver = solver or ExactQuboSolver()
 
-    def solve(self, ambulances: list[Ambulance], incidents: list[Incident]) -> OptimizationResult:
-        model = self.builder.build(ambulances, incidents)
+    def solve(
+        self,
+        ambulances: list[Ambulance],
+        incidents: list[Incident],
+        distance_matrix: DistanceMatrix,
+        severity_mapping: SeverityMapping,
+    ) -> OptimizationResult:
+        model = self.builder.build(ambulances, incidents, distance_matrix, severity_mapping)
         sample, objective_value = self.solver.solve(model)
-        ambulance_by_id = {item.id: item for item in ambulances}
-        incident_by_id = {item.id: item for item in incidents}
+
         assignments = [
             Assignment(
                 ambulance_id=ambulance_id,
                 incident_id=incident_id,
-                distance=ambulance_by_id[ambulance_id].location.distance_to(
-                    incident_by_id[incident_id].location
-                ),
+                distance=distance_matrix.matrix[ambulance_id][incident_id],
             )
             for (ambulance_id, incident_id), selected in sample.items()
             if selected

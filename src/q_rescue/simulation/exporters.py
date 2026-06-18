@@ -1,8 +1,12 @@
-"""Export module for simulation scenarios and cost matrices.
+"""Export module for simulation scenarios, distance matrices, and severity mappings.
 
-Provides functions to serialise ``DisasterScenario`` and ``CostMatrix``
-objects to JSON and CSV formats for use by the frontend and downstream
-solvers.
+Provides functions to serialise ``DisasterScenario``, ``DistanceMatrix``, and
+``SeverityMapping`` to JSON and CSV formats per the Member 2 Output Schema Specification.
+
+Per the schema:
+    - scenario.json       – full scenario (ambulances, incidents, hospitals)
+    - distance_matrix.json / .csv  – raw ambulance-to-incident distances (km)
+    - severity_weights.json / .csv – per-incident absolute severity weights (25/50/75/100)
 """
 
 from __future__ import annotations
@@ -12,7 +16,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from q_rescue.simulation.cost_matrix import CostMatrix
+from q_rescue.simulation.distance_matrix import DistanceMatrix, SeverityMapping
 from q_rescue.simulation.generator import DisasterScenario
 
 
@@ -24,6 +28,7 @@ from q_rescue.simulation.generator import DisasterScenario
 def export_scenario_json(scenario: DisasterScenario, path: Path) -> None:
     """Export the entire scenario to a single JSON file."""
     data = {
+        "scenario_id": scenario.name.lower().replace(" ", "_"),
         "name": scenario.name,
         "category": scenario.category.value,
         "ambulances": [
@@ -31,7 +36,7 @@ def export_scenario_json(scenario: DisasterScenario, path: Path) -> None:
                 "id": a.id,
                 "lat": round(a.location.x, 6),
                 "lon": round(a.location.y, 6),
-                "status": a.status,
+                "status": "available",
             }
             for a in scenario.ambulances
         ],
@@ -62,11 +67,24 @@ def export_scenario_json(scenario: DisasterScenario, path: Path) -> None:
         json.dump(data, f, indent=4)
 
 
-def export_cost_matrix_json(cost_matrix: CostMatrix, path: Path) -> None:
-    """Export the nested dict cost matrix to JSON."""
+def export_distance_matrix_json(distance_matrix: DistanceMatrix, path: Path) -> None:
+    """Export the raw distance matrix to JSON.
+
+    Format: {"A1": {"I1": 2.61, "I2": 10.85, ...}, ...}
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
-        json.dump(cost_matrix.to_dict(), f, indent=4)
+        json.dump(distance_matrix.to_dict(), f, indent=4)
+
+
+def export_severity_weights_json(severity_mapping: SeverityMapping, path: Path) -> None:
+    """Export per-incident severity weights to JSON.
+
+    Format: {"I1": 25, "I2": 100, "I3": 75}
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(severity_mapping, f, indent=4)
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +100,7 @@ def export_scenario_csv(scenario: DisasterScenario, output_dir: Path) -> None:
         output_dir / "ambulances.csv",
         headers=["id", "lat", "lon", "status"],
         rows=[
-            [a.id, round(a.location.x, 6), round(a.location.y, 6), a.status]
+            [a.id, round(a.location.x, 6), round(a.location.y, 6), "available"]
             for a in scenario.ambulances
         ],
     )
@@ -120,19 +138,30 @@ def export_scenario_csv(scenario: DisasterScenario, output_dir: Path) -> None:
     )
 
 
-def export_cost_matrix_csv(cost_matrix: CostMatrix, path: Path) -> None:
-    """Export the cost matrix to CSV (rows = ambulances, cols = incidents)."""
+def export_distance_matrix_csv(distance_matrix: DistanceMatrix, path: Path) -> None:
+    """Export the distance matrix to CSV (rows = ambulances, cols = incidents)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
-        # Header row
-        writer.writerow(["ambulance_id"] + cost_matrix.incident_ids)
-        # Data rows
-        for a_id in cost_matrix.ambulance_ids:
-            row = [a_id]
-            for i_id in cost_matrix.incident_ids:
-                row.append(cost_matrix.matrix[a_id][i_id])
+        writer.writerow(["ambulance_id"] + distance_matrix.incident_ids)
+        for a_id in distance_matrix.ambulance_ids:
+            row = [a_id] + [
+                distance_matrix.matrix[a_id][i_id] for i_id in distance_matrix.incident_ids
+            ]
             writer.writerow(row)
+
+
+def export_severity_weights_csv(severity_mapping: SeverityMapping, path: Path) -> None:
+    """Export per-incident severity weights to CSV.
+
+    Columns: incident_id, severity_weight
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["incident_id", "severity_weight"])
+        for incident_id, weight in severity_mapping.items():
+            writer.writerow([incident_id, weight])
 
 
 def _write_csv(path: Path, headers: list[str], rows: list[list[Any]]) -> None:
@@ -149,17 +178,19 @@ def _write_csv(path: Path, headers: list[str], rows: list[list[Any]]) -> None:
 
 def export_all(
     scenario: DisasterScenario,
-    cost_matrix: CostMatrix,
+    distance_matrix: DistanceMatrix,
+    severity_mapping: SeverityMapping,
     output_dir: Path,
     formats: list[str] | None = None,
 ) -> dict[str, Path]:
     """Generate all requested exports in a single call.
 
     Args:
-        scenario: The simulated scenario.
-        cost_matrix: The computed cost matrix.
-        output_dir: Target directory for all output files.
-        formats: List containing "json", "csv", or both. Defaults to both.
+        scenario:         The simulated scenario.
+        distance_matrix:  The raw distance matrix.
+        severity_mapping: Per-incident severity weights.
+        output_dir:       Target directory for all output files.
+        formats:          List containing "json", "csv", or both. Defaults to both.
 
     Returns:
         A dict mapping descriptive names to the generated file paths.
@@ -172,19 +203,25 @@ def export_all(
 
     if "json" in formats:
         p_scen = output_dir / "scenario.json"
-        p_cost = output_dir / "cost_matrix.json"
+        p_dist = output_dir / "distance_matrix.json"
+        p_sev = output_dir / "severity_weights.json"
         export_scenario_json(scenario, p_scen)
-        export_cost_matrix_json(cost_matrix, p_cost)
+        export_distance_matrix_json(distance_matrix, p_dist)
+        export_severity_weights_json(severity_mapping, p_sev)
         generated["scenario_json"] = p_scen
-        generated["cost_matrix_json"] = p_cost
+        generated["distance_matrix_json"] = p_dist
+        generated["severity_weights_json"] = p_sev
 
     if "csv" in formats:
         export_scenario_csv(scenario, output_dir)
-        p_cost_csv = output_dir / "cost_matrix.csv"
-        export_cost_matrix_csv(cost_matrix, p_cost_csv)
+        p_dist_csv = output_dir / "distance_matrix.csv"
+        p_sev_csv = output_dir / "severity_weights.csv"
+        export_distance_matrix_csv(distance_matrix, p_dist_csv)
+        export_severity_weights_csv(severity_mapping, p_sev_csv)
         generated["ambulances_csv"] = output_dir / "ambulances.csv"
         generated["incidents_csv"] = output_dir / "incidents.csv"
         generated["hospitals_csv"] = output_dir / "hospitals.csv"
-        generated["cost_matrix_csv"] = p_cost_csv
+        generated["distance_matrix_csv"] = p_dist_csv
+        generated["severity_weights_csv"] = p_sev_csv
 
     return generated

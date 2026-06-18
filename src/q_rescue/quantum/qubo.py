@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from itertools import combinations
 
 from q_rescue.domain.models import Ambulance, Incident
+from q_rescue.simulation.distance_matrix import DistanceMatrix, SeverityMapping
 
 Variable = tuple[str, str]
 QuadraticTerm = tuple[Variable, Variable]
@@ -37,30 +38,55 @@ class QuboModel:
 class AmbulanceAllocationQuboBuilder:
     """Build a POC QUBO for one-to-one ambulance/incident assignment.
 
-    Linear costs balance travel distance against severity coverage. A
-    cardinality penalty uses as many resources as the smaller input set, while
-    pairwise penalties prevent duplicate ambulance or incident assignments.
+    The solver now accepts a pre-computed ``DistanceMatrix`` and
+    ``SeverityMapping`` from the simulation layer (Member 2), and applies
+    the objective function internally:
+
+        cost(a, i) = distance_weight × d(a, i) − severity_weight × s(i)
+
+    A negative cost is expected for high-severity incidents: the QUBO
+    minimiser is attracted toward strongly negative entries.
     """
 
     def __init__(
         self,
         distance_weight: float = 1.0,
-        severity_weight: float = 8.0,
+        severity_weight: float = 1.0,
         constraint_penalty: float = 100.0,
     ) -> None:
         self.distance_weight = distance_weight
         self.severity_weight = severity_weight
         self.constraint_penalty = constraint_penalty
 
-    def build(self, ambulances: list[Ambulance], incidents: list[Incident]) -> QuboModel:
+    def build(
+        self,
+        ambulances: list[Ambulance],
+        incidents: list[Incident],
+        distance_matrix: DistanceMatrix,
+        severity_mapping: SeverityMapping,
+    ) -> QuboModel:
+        """Construct the QUBO model from pre-computed simulation outputs.
+
+        Args:
+            ambulances:       Ambulance list from the scenario.
+            incidents:        Incident list from the scenario.
+            distance_matrix:  Raw distances (km) from ``build_distance_matrix()``.
+            severity_mapping: Absolute severity weights from ``build_severity_mapping()``.
+
+        Returns:
+            A populated ``QuboModel`` ready for the Qiskit solver.
+        """
         model = QuboModel()
 
         for ambulance in ambulances:
             for incident in incidents:
                 variable = (ambulance.id, incident.id)
-                distance = ambulance.location.distance_to(incident.location)
-                assignment_cost = self.distance_weight * distance - self.severity_weight * float(
-                    incident.severity
+                distance = distance_matrix.matrix[ambulance.id][incident.id]
+                severity = severity_mapping[incident.id]
+                # Normalise severity to 0–1 range (schema: 25/50/75/100 → 0.25…1.0)
+                severity_normalised = severity / 100.0
+                assignment_cost = (
+                    self.distance_weight * distance - self.severity_weight * severity_normalised
                 )
                 model.objective_linear[variable] = assignment_cost
                 model.linear[variable] = assignment_cost

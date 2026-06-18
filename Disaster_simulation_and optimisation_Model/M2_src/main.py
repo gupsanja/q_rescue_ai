@@ -2,9 +2,9 @@ import tomllib
 from pathlib import Path
 
 from q_rescue.domain.models import DisasterCategory
-from q_rescue.simulation.scenarios import generate_scenario_by_category
-from q_rescue.simulation.cost_matrix import build_cost_matrix
+from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
 from q_rescue.simulation.exporters import export_all
+from q_rescue.simulation.scenarios import generate_scenario_by_category
 
 # Project root is three levels up: M2_src/ -> Disaster_simulation_.../ -> q_rescue_ai/
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -33,27 +33,23 @@ def main() -> None:
     print(f"Generated {len(scenario.ambulances)} ambulances, "
           f"{len(scenario.incidents)} incidents.")
 
-    # 3. Build Cost Matrix
-    opt_config = config.get("optimisation", {})
-    dist_w = float(opt_config.get("distance_weight", 1.0))
-    sev_w = float(opt_config.get("severity_weight", 8.0))
-
-    print("Building cost matrix (Haversine distance)...")
-    cost_matrix = build_cost_matrix(
-        scenario,
-        distance_weight=dist_w,
-        severity_weight=sev_w,
-    )
+    print("Building raw distance matrix (Haversine)...")
+    distance_matrix = build_distance_matrix(scenario)
+    
+    print("Extracting severity mapping...")
+    severity_mapping = build_severity_mapping(scenario)
 
     # 4. Export Outputs
     export_config = config.get("export", {})
-    out_dir_str = str(export_config.get("output_dir", "data/outputs"))
+    out_dir_str = str(export_config.get("export_dir", "data/outputs"))
     formats = list(export_config.get("formats", ["json", "csv"]))
 
     out_dir = _PROJECT_ROOT / out_dir_str
     print(f"Exporting data to {out_dir}...")
 
-    generated = export_all(scenario, cost_matrix, out_dir, formats=formats)
+    generated = export_all(
+        scenario, distance_matrix, severity_mapping, out_dir, formats=formats
+    )
     for name, path in generated.items():
         print(f"  - {name}: {path.relative_to(_PROJECT_ROOT)}")
 
