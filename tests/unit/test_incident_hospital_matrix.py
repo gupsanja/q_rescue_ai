@@ -1,6 +1,6 @@
 from q_rescue.simulation.distance_matrix import build_incident_hospital_matrix
 from q_rescue.simulation.generator import DisasterScenario
-from q_rescue.domain.models import Ambulance, Hospital, Incident, Location, Severity, DisasterCategory
+from q_rescue.domain.models import Hospital, Incident, Location, Severity, DisasterCategory
 
 def test_incident_hospital_matrix_dimensions():
     scenario = DisasterScenario(

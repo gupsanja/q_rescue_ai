@@ -1,4 +1,3 @@
-import pytest
 
 from q_rescue.simulation.scenarios import generate_scenario_by_category
 from q_rescue.domain.models import DisasterCategory

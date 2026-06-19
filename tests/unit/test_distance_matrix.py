@@ -4,6 +4,7 @@ import pandas as pd
 from q_rescue.domain.models import Severity
 from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
 from q_rescue.simulation.scenarios import generate_generic_scenario
+from dataclasses import replace
 
 
 def test_distance_matrix_dimensions():
@@ -16,9 +17,6 @@ def test_distance_matrix_dimensions():
         for i_id in dm.matrix[a_id]:
             # Haversine distance should be > 0 but relatively small in a city
             assert 0.0 <= dm.matrix[a_id][i_id] < 100.0
-
-
-from dataclasses import replace
 
 
 def test_severity_mapping_extracts_absolute_weights():
