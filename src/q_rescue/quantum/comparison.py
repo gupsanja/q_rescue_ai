@@ -9,7 +9,12 @@ from q_rescue.metrics.evaluator import calculate_metrics
 from q_rescue.quantum.qaoa_solver import ExactQuboSolver, QiskitQAOASolver, QuboSolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder, QuboModel, Variable
 from q_rescue.simulation.generator import DisasterScenario
-from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping, DistanceMatrix, SeverityMapping
+from q_rescue.simulation.distance_matrix import (
+    build_distance_matrix,
+    build_severity_mapping,
+    DistanceMatrix,
+    SeverityMapping,
+)
 
 
 @dataclass(frozen=True)
@@ -46,8 +51,10 @@ def compare_solvers(
     qaoa_solver = qaoa_solver or QiskitQAOASolver()
     distance_matrix = build_distance_matrix(scenario)
     severity_mapping = build_severity_mapping(scenario)
-    
-    model = builder.build(scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping)
+
+    model = builder.build(
+        scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping
+    )
 
     classical = _benchmark_classical(scenario, model, distance_matrix, severity_mapping)
     exact = _benchmark_qubo_solver(scenario, model, ExactQuboSolver(), distance_matrix)
@@ -91,7 +98,9 @@ def _benchmark_classical(
     severity_mapping: SeverityMapping,
 ) -> SolverBenchmark:
     started = perf_counter()
-    result = GreedyAllocator().solve(scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping)
+    result = GreedyAllocator().solve(
+        scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping
+    )
     runtime = perf_counter() - started
     sample = sample_from_assignments(model, result.assignments)
     return _build_benchmark(scenario, model, sample, result.solver_name, runtime, distance_matrix)

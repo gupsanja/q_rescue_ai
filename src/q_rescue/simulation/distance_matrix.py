@@ -99,12 +99,10 @@ class IncidentHospitalMatrix:
         import numpy as np  # noqa: PLC0415
 
         return np.array(
-            [
-                [self.matrix[i_id][h_id] for h_id in self.hospital_ids]
-                for i_id in self.incident_ids
-            ],
+            [[self.matrix[i_id][h_id] for h_id in self.hospital_ids] for i_id in self.incident_ids],
             dtype=float,
         )
+
 
 # Type alias for the severity mapping
 SeverityMapping = dict[str, int]  # {incident_id: weight (25/50/75/100)}
@@ -188,7 +186,6 @@ def build_incident_hospital_matrix(
         incident_ids=incident_ids,
         hospital_ids=hospital_ids,
     )
-
 
 
 def build_severity_mapping(scenario: DisasterScenario) -> SeverityMapping:

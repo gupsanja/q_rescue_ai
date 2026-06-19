@@ -16,7 +16,11 @@ import json
 from pathlib import Path
 from typing import Any
 
-from q_rescue.simulation.distance_matrix import DistanceMatrix, SeverityMapping, IncidentHospitalMatrix
+from q_rescue.simulation.distance_matrix import (
+    DistanceMatrix,
+    SeverityMapping,
+    IncidentHospitalMatrix,
+)
 from q_rescue.simulation.generator import DisasterScenario
 from q_rescue.simulation.constraints import OperationalConstraints
 
@@ -192,9 +196,7 @@ def export_incident_hospital_matrix_csv(matrix: IncidentHospitalMatrix, path: Pa
         writer = csv.writer(f)
         writer.writerow(["incident_id"] + matrix.hospital_ids)
         for i_id in matrix.incident_ids:
-            row = [i_id] + [
-                matrix.matrix[i_id][h_id] for h_id in matrix.hospital_ids
-            ]
+            row = [i_id] + [matrix.matrix[i_id][h_id] for h_id in matrix.hospital_ids]
             writer.writerow(row)
 
 
@@ -249,12 +251,12 @@ def export_all(
         generated["scenario_json"] = p_scen
         generated["distance_matrix_json"] = p_dist
         generated["severity_weights_json"] = p_sev
-        
+
         if incident_hospital_matrix:
             p_ih = output_dir / "incident_hospital_matrix.json"
             export_incident_hospital_matrix_json(incident_hospital_matrix, p_ih)
             generated["incident_hospital_matrix_json"] = p_ih
-            
+
         if constraints:
             p_cons = output_dir / "constraints.json"
             export_constraints_json(constraints, p_cons)
@@ -271,7 +273,7 @@ def export_all(
         generated["hospitals_csv"] = output_dir / "hospitals.csv"
         generated["distance_matrix_csv"] = p_dist_csv
         generated["severity_weights_csv"] = p_sev_csv
-        
+
         if incident_hospital_matrix:
             p_ih_csv = output_dir / "incident_hospital_matrix.csv"
             export_incident_hospital_matrix_csv(incident_hospital_matrix, p_ih_csv)

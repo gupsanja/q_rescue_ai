@@ -2,6 +2,7 @@ from q_rescue.simulation.distance_matrix import build_incident_hospital_matrix
 from q_rescue.simulation.generator import DisasterScenario
 from q_rescue.domain.models import Hospital, Incident, Location, Severity, DisasterCategory
 
+
 def test_incident_hospital_matrix_dimensions():
     scenario = DisasterScenario(
         name="test",
@@ -17,7 +18,7 @@ def test_incident_hospital_matrix_dimensions():
         ],
         category=DisasterCategory.GENERIC,
     )
-    
+
     matrix = build_incident_hospital_matrix(scenario)
     assert len(matrix.incident_ids) == 2
     assert len(matrix.hospital_ids) == 3
@@ -25,6 +26,7 @@ def test_incident_hospital_matrix_dimensions():
     assert matrix.hospital_ids == ["H1", "H2", "H3"]
     assert len(matrix.matrix) == 2
     assert len(matrix.matrix["I1"]) == 3
+
 
 def test_incident_hospital_matrix_custom_distance():
     scenario = DisasterScenario(
@@ -38,9 +40,9 @@ def test_incident_hospital_matrix_custom_distance():
         ],
         category=DisasterCategory.GENERIC,
     )
-    
+
     def dummy_dist(loc1, loc2):
         return 42.0
-        
+
     matrix = build_incident_hospital_matrix(scenario, distance_fn=dummy_dist)
     assert matrix.matrix["I1"]["H1"] == 42.0
