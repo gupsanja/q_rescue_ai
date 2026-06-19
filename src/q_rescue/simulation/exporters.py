@@ -16,8 +16,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from q_rescue.simulation.distance_matrix import DistanceMatrix, SeverityMapping
+from q_rescue.simulation.distance_matrix import DistanceMatrix, SeverityMapping, IncidentHospitalMatrix
 from q_rescue.simulation.generator import DisasterScenario
+from q_rescue.simulation.constraints import OperationalConstraints
 
 
 # ---------------------------------------------------------------------------
@@ -85,6 +86,26 @@ def export_severity_weights_json(severity_mapping: SeverityMapping, path: Path) 
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump(severity_mapping, f, indent=4)
+
+
+def export_incident_hospital_matrix_json(matrix: IncidentHospitalMatrix, path: Path) -> None:
+    """Export the raw incident-to-hospital distance matrix to JSON.
+
+    Format: {"I1": {"H1": 3.2, "H2": 7.8}, ...}
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(matrix.to_dict(), f, indent=4)
+
+
+def export_constraints_json(constraints: OperationalConstraints, path: Path) -> None:
+    """Export the operational constraints to JSON.
+
+    Format: {"one_ambulance_per_incident": true, ...}
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(constraints.to_dict(), f, indent=4)
 
 
 # ---------------------------------------------------------------------------
@@ -164,6 +185,19 @@ def export_severity_weights_csv(severity_mapping: SeverityMapping, path: Path) -
             writer.writerow([incident_id, weight])
 
 
+def export_incident_hospital_matrix_csv(matrix: IncidentHospitalMatrix, path: Path) -> None:
+    """Export the distance matrix to CSV (rows = incidents, cols = hospitals)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["incident_id"] + matrix.hospital_ids)
+        for i_id in matrix.incident_ids:
+            row = [i_id] + [
+                matrix.matrix[i_id][h_id] for h_id in matrix.hospital_ids
+            ]
+            writer.writerow(row)
+
+
 def _write_csv(path: Path, headers: list[str], rows: list[list[Any]]) -> None:
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
@@ -181,6 +215,8 @@ def export_all(
     distance_matrix: DistanceMatrix,
     severity_mapping: SeverityMapping,
     output_dir: Path,
+    incident_hospital_matrix: IncidentHospitalMatrix | None = None,
+    constraints: OperationalConstraints | None = None,
     formats: list[str] | None = None,
 ) -> dict[str, Path]:
     """Generate all requested exports in a single call.
@@ -190,6 +226,8 @@ def export_all(
         distance_matrix:  The raw distance matrix.
         severity_mapping: Per-incident severity weights.
         output_dir:       Target directory for all output files.
+        incident_hospital_matrix: Optional incident-to-hospital distance matrix.
+        constraints:      Optional operational constraints.
         formats:          List containing "json", "csv", or both. Defaults to both.
 
     Returns:
@@ -211,6 +249,16 @@ def export_all(
         generated["scenario_json"] = p_scen
         generated["distance_matrix_json"] = p_dist
         generated["severity_weights_json"] = p_sev
+        
+        if incident_hospital_matrix:
+            p_ih = output_dir / "incident_hospital_matrix.json"
+            export_incident_hospital_matrix_json(incident_hospital_matrix, p_ih)
+            generated["incident_hospital_matrix_json"] = p_ih
+            
+        if constraints:
+            p_cons = output_dir / "constraints.json"
+            export_constraints_json(constraints, p_cons)
+            generated["constraints_json"] = p_cons
 
     if "csv" in formats:
         export_scenario_csv(scenario, output_dir)
@@ -223,5 +271,10 @@ def export_all(
         generated["hospitals_csv"] = output_dir / "hospitals.csv"
         generated["distance_matrix_csv"] = p_dist_csv
         generated["severity_weights_csv"] = p_sev_csv
+        
+        if incident_hospital_matrix:
+            p_ih_csv = output_dir / "incident_hospital_matrix.csv"
+            export_incident_hospital_matrix_csv(incident_hospital_matrix, p_ih_csv)
+            generated["incident_hospital_matrix_csv"] = p_ih_csv
 
     return generated

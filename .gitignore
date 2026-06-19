@@ -11,3 +11,4 @@ dist/
 .streamlit/secrets.toml
 data/generated/
 work/
+schema-specs.md

@@ -55,7 +55,7 @@ class DistanceMatrix:
             index=self.ambulance_ids, columns=self.incident_ids
         )
 
-    def to_numpy(self):  # -> np.ndarray
+    def to_numpy(self):
         """Return distance values as a 2-D NumPy array (rows=ambulances, cols=incidents)."""
         import numpy as np  # noqa: PLC0415
 
@@ -67,6 +67,44 @@ class DistanceMatrix:
             dtype=float,
         )
 
+
+@dataclass
+class IncidentHospitalMatrix:
+    """Raw incident-to-hospital travel distances in kilometres.
+
+    Attributes:
+        matrix:       Nested dict ``{incident_id: {hospital_id: distance_km}}``.
+        incident_ids: Ordered list of incident IDs (row index).
+        hospital_ids: Ordered list of hospital IDs (column index).
+    """
+
+    matrix: dict[str, dict[str, float]] = field(default_factory=dict)
+    incident_ids: list[str] = field(default_factory=list)
+    hospital_ids: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, dict[str, float]]:
+        """Return the distance matrix as a plain nested dict (JSON-serialisable)."""
+        return self.matrix
+
+    def to_dataframe(self):
+        """Return the distance matrix as a pandas DataFrame (rows=incidents, cols=hospitals)."""
+        import pandas as pd  # noqa: PLC0415
+
+        return pd.DataFrame(self.matrix).T.reindex(
+            index=self.incident_ids, columns=self.hospital_ids
+        )
+
+    def to_numpy(self):
+        """Return distance values as a 2-D NumPy array (rows=incidents, cols=hospitals)."""
+        import numpy as np  # noqa: PLC0415
+
+        return np.array(
+            [
+                [self.matrix[i_id][h_id] for h_id in self.hospital_ids]
+                for i_id in self.incident_ids
+            ],
+            dtype=float,
+        )
 
 # Type alias for the severity mapping
 SeverityMapping = dict[str, int]  # {incident_id: weight (25/50/75/100)}
@@ -115,6 +153,42 @@ def build_distance_matrix(
         ambulance_ids=ambulance_ids,
         incident_ids=incident_ids,
     )
+
+
+def build_incident_hospital_matrix(
+    scenario: DisasterScenario,
+    distance_fn: Callable[[Location, Location], float] | None = None,
+) -> IncidentHospitalMatrix:
+    """Build a raw incident-to-hospital distance matrix from a scenario.
+
+    Args:
+        scenario:    A ``DisasterScenario`` produced by any generator.
+        distance_fn: Optional custom distance function
+                     ``(Location, Location) -> float`` returning km.
+                     Defaults to Haversine (great-circle) distance.
+
+    Returns:
+        A populated ``IncidentHospitalMatrix`` instance containing raw distances only.
+    """
+    dist = distance_fn if distance_fn is not None else _haversine
+
+    incident_ids = [i.id for i in scenario.incidents]
+    hospital_ids = [h.id for h in scenario.hospitals]
+
+    matrix: dict[str, dict[str, float]] = {}
+
+    for incident in scenario.incidents:
+        matrix[incident.id] = {}
+        for hospital in scenario.hospitals:
+            d = dist(incident.location, hospital.location)
+            matrix[incident.id][hospital.id] = round(d, 6)
+
+    return IncidentHospitalMatrix(
+        matrix=matrix,
+        incident_ids=incident_ids,
+        hospital_ids=hospital_ids,
+    )
+
 
 
 def build_severity_mapping(scenario: DisasterScenario) -> SeverityMapping:
