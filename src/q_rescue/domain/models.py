@@ -100,6 +100,7 @@ class Assignment:
     ambulance_id: str
     incident_id: str
     distance: float
+    hospital_id: str | None = None
 
 
 @dataclass
