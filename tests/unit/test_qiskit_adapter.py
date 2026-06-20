@@ -20,7 +20,9 @@ def _build_small_qubo():
         Incident("I1", Location(0.001, 0.0), Severity.CRITICAL),
         Incident("I2", Location(0.004, 0.0), Severity.LOW),
     ]
-    scenario = DisasterScenario(name="test", ambulances=ambulances, incidents=incidents, hospitals=[])
+    scenario = DisasterScenario(
+        name="test", ambulances=ambulances, incidents=incidents, hospitals=[]
+    )
     dm = build_distance_matrix(scenario)
     sm = build_severity_mapping(scenario)
     return AmbulanceAllocationQuboBuilder().build(ambulances, incidents, dm, sm)

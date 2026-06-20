@@ -25,7 +25,9 @@ def test_qaoa_matches_exact_solver_on_small_ambulance_problem() -> None:
         Incident("I-low", Location(0.001, 0.0), Severity.LOW),
         Incident("I-critical", Location(0.002, 0.0), Severity.CRITICAL),
     ]
-    scenario = DisasterScenario(name="test", ambulances=ambulances, incidents=incidents, hospitals=[])
+    scenario = DisasterScenario(
+        name="test", ambulances=ambulances, incidents=incidents, hospitals=[]
+    )
     dm = build_distance_matrix(scenario)
     sm = build_severity_mapping(scenario)
     model = AmbulanceAllocationQuboBuilder().build(ambulances, incidents, dm, sm)
