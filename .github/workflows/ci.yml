@@ -99,12 +99,17 @@ jobs:
       - name: Verify output files exist
         run: |
           echo "Checking generated output files..."
-          test -f data/outputs/scenario.json       && echo "✅ scenario.json"
-          test -f data/outputs/cost_matrix.json     && echo "✅ cost_matrix.json"
-          test -f data/outputs/ambulances.csv       && echo "✅ ambulances.csv"
-          test -f data/outputs/incidents.csv        && echo "✅ incidents.csv"
-          test -f data/outputs/hospitals.csv        && echo "✅ hospitals.csv"
-          test -f data/outputs/cost_matrix.csv      && echo "✅ cost_matrix.csv"
+          test -f data/outputs/scenario.json                  && echo "✅ scenario.json"
+          test -f data/outputs/distance_matrix.json           && echo "✅ distance_matrix.json"
+          test -f data/outputs/severity_weights.json          && echo "✅ severity_weights.json"
+          test -f data/outputs/incident_hospital_matrix.json  && echo "✅ incident_hospital_matrix.json"
+          test -f data/outputs/constraints.json               && echo "✅ constraints.json"
+          test -f data/outputs/ambulances.csv                 && echo "✅ ambulances.csv"
+          test -f data/outputs/incidents.csv                  && echo "✅ incidents.csv"
+          test -f data/outputs/hospitals.csv                  && echo "✅ hospitals.csv"
+          test -f data/outputs/distance_matrix.csv            && echo "✅ distance_matrix.csv"
+          test -f data/outputs/severity_weights.csv           && echo "✅ severity_weights.csv"
+          test -f data/outputs/incident_hospital_matrix.csv   && echo "✅ incident_hospital_matrix.csv"
           echo ""
           echo "--- scenario.json preview ---"
           head -20 data/outputs/scenario.json

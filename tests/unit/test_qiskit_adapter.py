@@ -7,18 +7,25 @@ pytest.importorskip("qiskit_optimization")
 from q_rescue.domain.models import Ambulance, Incident, Location, Severity
 from q_rescue.quantum.qiskit_adapter import to_quadratic_program
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
+from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
+from q_rescue.simulation.generator import DisasterScenario
 
 
 def _build_small_qubo():
     ambulances = [
-        Ambulance("A1", Location(0, 0)),
-        Ambulance("A2", Location(3, 0)),
+        Ambulance("A1", Location(0.0, 0.0)),
+        Ambulance("A2", Location(0.003, 0.0)),
     ]
     incidents = [
-        Incident("I1", Location(1, 0), Severity.CRITICAL),
-        Incident("I2", Location(4, 0), Severity.LOW),
+        Incident("I1", Location(0.001, 0.0), Severity.CRITICAL),
+        Incident("I2", Location(0.004, 0.0), Severity.LOW),
     ]
-    return AmbulanceAllocationQuboBuilder().build(ambulances, incidents)
+    scenario = DisasterScenario(
+        name="test", ambulances=ambulances, incidents=incidents, hospitals=[]
+    )
+    dm = build_distance_matrix(scenario)
+    sm = build_severity_mapping(scenario)
+    return AmbulanceAllocationQuboBuilder().build(ambulances, incidents, dm, sm)
 
 
 def test_conversion_creates_binary_variables_and_reversible_mappings() -> None:

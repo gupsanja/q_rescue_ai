@@ -9,6 +9,12 @@ from q_rescue.metrics.evaluator import calculate_metrics
 from q_rescue.quantum.qaoa_solver import ExactQuboSolver, QiskitQAOASolver, QuboSolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder, QuboModel, Variable
 from q_rescue.simulation.generator import DisasterScenario
+from q_rescue.simulation.distance_matrix import (
+    build_distance_matrix,
+    build_severity_mapping,
+    DistanceMatrix,
+    SeverityMapping,
+)
 
 
 @dataclass(frozen=True)
@@ -43,11 +49,16 @@ def compare_solvers(
     """Benchmark classical, exact-QUBO, and QAOA solvers on one scenario."""
     builder = builder or AmbulanceAllocationQuboBuilder()
     qaoa_solver = qaoa_solver or QiskitQAOASolver()
-    model = builder.build(scenario.ambulances, scenario.incidents)
+    distance_matrix = build_distance_matrix(scenario)
+    severity_mapping = build_severity_mapping(scenario)
 
-    classical = _benchmark_classical(scenario, model)
-    exact = _benchmark_qubo_solver(scenario, model, ExactQuboSolver())
-    qaoa = _benchmark_qubo_solver(scenario, model, qaoa_solver)
+    model = builder.build(
+        scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping
+    )
+
+    classical = _benchmark_classical(scenario, model, distance_matrix, severity_mapping)
+    exact = _benchmark_qubo_solver(scenario, model, ExactQuboSolver(), distance_matrix)
+    qaoa = _benchmark_qubo_solver(scenario, model, qaoa_solver, distance_matrix)
 
     classical_gap = classical.qubo_energy - exact.qubo_energy
     qaoa_gap = qaoa.qubo_energy - exact.qubo_energy
@@ -83,23 +94,28 @@ def sample_from_assignments(
 def _benchmark_classical(
     scenario: DisasterScenario,
     model: QuboModel,
+    distance_matrix: DistanceMatrix,
+    severity_mapping: SeverityMapping,
 ) -> SolverBenchmark:
     started = perf_counter()
-    result = GreedyAllocator().solve(scenario.ambulances, scenario.incidents)
+    result = GreedyAllocator().solve(
+        scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping
+    )
     runtime = perf_counter() - started
     sample = sample_from_assignments(model, result.assignments)
-    return _build_benchmark(scenario, model, sample, result.solver_name, runtime)
+    return _build_benchmark(scenario, model, sample, result.solver_name, runtime, distance_matrix)
 
 
 def _benchmark_qubo_solver(
     scenario: DisasterScenario,
     model: QuboModel,
     solver: QuboSolver,
+    distance_matrix: DistanceMatrix,
 ) -> SolverBenchmark:
     started = perf_counter()
     sample, _ = solver.solve(model)
     runtime = perf_counter() - started
-    return _build_benchmark(scenario, model, sample, solver.name, runtime)
+    return _build_benchmark(scenario, model, sample, solver.name, runtime, distance_matrix)
 
 
 def _build_benchmark(
@@ -108,16 +124,13 @@ def _build_benchmark(
     sample: dict[Variable, int],
     solver_name: str,
     runtime_seconds: float,
+    distance_matrix: DistanceMatrix,
 ) -> SolverBenchmark:
-    ambulance_by_id = {ambulance.id: ambulance for ambulance in scenario.ambulances}
-    incident_by_id = {incident.id: incident for incident in scenario.incidents}
     assignments = [
         Assignment(
             ambulance_id=ambulance_id,
             incident_id=incident_id,
-            distance=ambulance_by_id[ambulance_id].location.distance_to(
-                incident_by_id[incident_id].location
-            ),
+            distance=distance_matrix.matrix[ambulance_id][incident_id],
         )
         for (ambulance_id, incident_id), selected in sample.items()
         if selected

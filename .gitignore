@@ -11,3 +11,6 @@ dist/
 .streamlit/secrets.toml
 data/generated/
 work/
+schema-specs.md
+phasetext.txt
+m1_discussion_points.md

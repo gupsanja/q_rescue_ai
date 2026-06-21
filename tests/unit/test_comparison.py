@@ -6,16 +6,17 @@ from q_rescue.domain.models import Ambulance, Assignment, Incident, Location, Se
 from q_rescue.quantum.comparison import compare_solvers, sample_from_assignments
 from q_rescue.quantum.qaoa_solver import QiskitQAOASolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
+from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
 from q_rescue.simulation.generator import DisasterScenario
 
 
 def _small_scenario() -> DisasterScenario:
     return DisasterScenario(
         name="Comparison test",
-        ambulances=[Ambulance("A1", Location(0, 0))],
+        ambulances=[Ambulance("A1", Location(0.0, 0.0))],
         incidents=[
-            Incident("I-low", Location(1, 0), Severity.LOW),
-            Incident("I-critical", Location(2, 0), Severity.CRITICAL),
+            Incident("I-low", Location(0.001, 0.0), Severity.LOW),
+            Incident("I-critical", Location(0.002, 0.0), Severity.CRITICAL),
         ],
         hospitals=[],
     )
@@ -23,9 +24,13 @@ def _small_scenario() -> DisasterScenario:
 
 def test_assignments_are_encoded_for_shared_qubo_evaluation() -> None:
     scenario = _small_scenario()
+    dm = build_distance_matrix(scenario)
+    sm = build_severity_mapping(scenario)
     model = AmbulanceAllocationQuboBuilder().build(
         scenario.ambulances,
         scenario.incidents,
+        dm,
+        sm,
     )
     assignments = [Assignment("A1", "I-critical", 2.0)]
 
@@ -37,9 +42,13 @@ def test_assignments_are_encoded_for_shared_qubo_evaluation() -> None:
 
 def test_unknown_assignment_is_rejected() -> None:
     scenario = _small_scenario()
+    dm = build_distance_matrix(scenario)
+    sm = build_severity_mapping(scenario)
     model = AmbulanceAllocationQuboBuilder().build(
         scenario.ambulances,
         scenario.incidents,
+        dm,
+        sm,
     )
 
     with pytest.raises(ValueError, match="not present"):

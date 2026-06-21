@@ -5,6 +5,8 @@ pytest.importorskip("qiskit_optimization")
 from q_rescue.domain.models import Ambulance, Incident, Location, Severity
 from q_rescue.quantum.qaoa_solver import ExactQuboSolver, QiskitQAOASolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder, QuboModel
+from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
+from q_rescue.simulation.generator import DisasterScenario
 
 
 def test_qaoa_selects_single_beneficial_assignment() -> None:
@@ -18,12 +20,17 @@ def test_qaoa_selects_single_beneficial_assignment() -> None:
 
 
 def test_qaoa_matches_exact_solver_on_small_ambulance_problem() -> None:
-    ambulances = [Ambulance("A1", Location(0, 0))]
+    ambulances = [Ambulance("A1", Location(0.0, 0.0))]
     incidents = [
-        Incident("I-low", Location(1, 0), Severity.LOW),
-        Incident("I-critical", Location(2, 0), Severity.CRITICAL),
+        Incident("I-low", Location(0.001, 0.0), Severity.LOW),
+        Incident("I-critical", Location(0.002, 0.0), Severity.CRITICAL),
     ]
-    model = AmbulanceAllocationQuboBuilder().build(ambulances, incidents)
+    scenario = DisasterScenario(
+        name="test", ambulances=ambulances, incidents=incidents, hospitals=[]
+    )
+    dm = build_distance_matrix(scenario)
+    sm = build_severity_mapping(scenario)
+    model = AmbulanceAllocationQuboBuilder().build(ambulances, incidents, dm, sm)
 
     exact_sample, exact_value = ExactQuboSolver().solve(model)
     qaoa_sample, qaoa_value = QiskitQAOASolver(shots=1024, maxiter=50).solve(model)
