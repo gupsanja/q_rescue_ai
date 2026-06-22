@@ -51,7 +51,7 @@ COBYLA optimiser repeatedly updates those angles using sampled objective values.
 The best measured bit string is translated back into ambulance/incident
 assignment variables.
 
-Initial POC configuration:
+Single-run QAOA configuration:
 
 - QAOA repetitions (`reps`): 1
 - Statevector sampler shots: 1024
@@ -62,6 +62,30 @@ Initial POC configuration:
 `StatevectorSampler` runs locally and samples from an ideal statevector. The
 finite shot count still introduces sampling behaviour, but this is not a noisy
 hardware experiment. Real-device execution and noise modelling are future work.
+
+### Multi-start QAOA improvement
+
+QAOA is a hybrid algorithm: a quantum circuit proposes sampled bit strings, and
+a classical optimiser searches for good circuit angles. The final result can be
+sensitive to the starting angles. A single unlucky seed can therefore produce a
+valid but low-quality ambulance assignment.
+
+To make the solver more reliable, the current comparison workflow can use
+`MultiStartQAOASolver`. It runs QAOA several times with deterministic sub-seeds
+derived from the main seed, evaluates every returned assignment with the same
+QUBO energy function, and keeps the lowest-energy sample.
+
+Default comparison setting:
+
+- QAOA attempts (`--qaoa-attempts`): 4
+- QAOA repetitions (`--reps`): 1
+- Statevector sampler shots (`--shots`): 1024 by default, 2048 used in the
+  latest small benchmark validation
+- COBYLA maximum iterations (`--maxiter`): 100 by default, 50 used in the
+  latest small benchmark validation
+
+This improves solution quality but increases runtime roughly in proportion to
+the number of attempts. Runtime optimisation is the next engineering task.
 
 ## Classical, exact, and QAOA comparison
 
@@ -86,7 +110,19 @@ This is reported as a percentage gap rather than as a conventional
 approximation ratio, whose interpretation becomes confusing for negative
 objectives.
 
-### Week 1 POC results
+### Progress timeline
+
+The methodology deliberately keeps each stage of progress. The early weak QAOA
+results are not removed, because they show what was learned and why the solver
+was improved.
+
+| Date/stage | What changed | Key outcome |
+| --- | --- | --- |
+| Week 1 synthetic POC | Built the first QUBO and ran single-start QAOA on a generated 3 ambulance / 5 incident problem. | QAOA produced a feasible assignment, but quality was worse than exact. |
+| Sheffield benchmark integration | Connected the quantum workflow to Member 2's exported `scenario`, `distance_matrix`, and `severity_weights` files. | Single-start QAOA was still feasible, but much worse than exact on seed 42. |
+| 22 June 2026 multi-start update | Added deterministic multi-start QAOA and kept the best QUBO energy across attempts. | QAOA matched exact enumeration on the small Sheffield benchmark, with higher runtime. |
+
+### Stage 1: Week 1 synthetic POC result
 
 Configuration: 3 ambulances, 5 incidents, 15 binary variables, grid coordinates,
 seed 42, QAOA `reps=1`, 1024 shots, and COBYLA `maxiter=100`.
@@ -110,26 +146,104 @@ Future experiments should test more repetitions, optimisers, initial points,
 and seeds, while reporting all attempted configurations rather than selecting
 only the best run.
 
+### Stage 2: Sheffield benchmark single-start result
+
+After Member 2's benchmark exports were integrated, the same comparison process
+was run on the Sheffield flood response benchmark. This was an important
+intermediate result because it showed that the QUBO pipeline worked with real
+project inputs, but QAOA quality was still seed-sensitive.
+
+Configuration: Sheffield flood response benchmark, 3 ambulances, 5 incidents,
+15 binary variables, seed 42, QAOA `reps=1`, 1024 shots, COBYLA `maxiter=100`,
+and one QAOA attempt.
+
+| Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Classical greedy | 11.532364 | 0.000015 s | 4.511 km | 60% | 100% | Yes |
+| Exact enumeration | 9.987297 | 0.490767 s | 3.829 km | 60% | 100% | Yes |
+| Single-start QAOA simulator | 22.132145 | 6.589727 s | 7.877 km | 60% | 100% | Yes |
+
+Assignments:
+
+- Classical greedy: `A1->I4`, `A2->I2`, `A3->I3`
+- Exact enumeration: `A1->I4`, `A2->I1`, `A3->I5`
+- Single-start QAOA: `A1->I5`, `A2->I4`, `A3->I1`
+
+This was a valid but poor QAOA result. The QAOA gap from exact was `12.144848`,
+or `121.60%`. That result motivated the multi-start improvement rather than
+being hidden or overwritten.
+
+### Stage 3: Current benchmark result, 22 June 2026
+
+The solver has now been connected to Member 2's Sheffield benchmark exports:
+`scenario.json`, `distance_matrix.json`, and `severity_weights.json`.
+
+Command used for the latest validation:
+
+```bash
+.venv/bin/python scripts/compare_solvers.py \
+  --benchmark-dir data/benchmarks/small \
+  --reps 1 \
+  --shots 2048 \
+  --maxiter 50 \
+  --seed 42 \
+  --qaoa-attempts 4
+```
+
+Configuration: Sheffield flood response benchmark, 3 ambulances, 5 incidents,
+15 binary variables, seed 42, QAOA `reps=1`, 2048 shots, COBYLA `maxiter=50`,
+and 4 deterministic QAOA attempts.
+
+| Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Classical greedy | 11.532364 | 0.000016 s | 4.511 km | 60% | 100% | Yes |
+| Exact enumeration | 9.987297 | 0.456462 s | 3.829 km | 60% | 100% | Yes |
+| Multi-start QAOA simulator | 9.987297 | 19.276596 s | 3.829 km | 60% | 100% | Yes |
+
+Assignments:
+
+- Classical greedy: `A1->I4`, `A2->I2`, `A3->I3`
+- Exact enumeration: `A1->I4`, `A2->I1`, `A3->I5`
+- Multi-start QAOA: `A1->I4`, `A2->I1`, `A3->I5`
+
+Compared with the Stage 2 single-start result, multi-start QAOA reduced the
+gap from `121.60%` to `0.00%` on the small benchmark by finding the same
+assignment as exact enumeration. This is progress in solution quality, not yet
+progress in runtime.
+
+This is a strong correctness and quality result for the small proof of concept,
+but it is not evidence of quantum advantage. Exact enumeration and greedy are
+still faster at this scale. The next experiments must test larger scenarios,
+runtime, repeated trials, and stronger classical baselines.
+
 ## Assumptions for the first POC
 
 - Each ambulance serves at most one incident during one decision window.
 - Each incident receives at most one ambulance.
 - The model creates exactly `K` assignments when both input sets are non-empty.
 - Severity is represented as `LOW=1`, `MEDIUM=2`, `HIGH=3`, `CRITICAL=4`.
-- Travel distance is Euclidean for the synthetic scenario.
-- Hospital capacity and routing are deferred until the ambulance model is stable.
+- The synthetic Week 1 scenario used Euclidean distance.
+- The Sheffield benchmark uses Member 2's exported distance matrix.
+- Hospital capacity and routing are not yet part of the QUBO decision variables.
 
 ## Member 1 validation checklist
 
-- Confirm penalty weights dominate invalid low-distance solutions.
-- Confirm critical incidents are preferred when resources are scarce.
-- Compare exact QUBO and QAOA objective values on 3 ambulances / 5 incidents.
-- Record QAOA reps, optimiser, shots, simulator backend, seed, and runtime.
-- Report feasibility separately from objective quality.
-- Explain scaling limits as binary variables grow by ambulances x incidents.
+- Done: confirm penalty weights dominate invalid low-distance solutions.
+- Done: compare exact QUBO and QAOA objective values on 3 ambulances / 5 incidents.
+- Done: record QAOA reps, optimiser, shots, simulator backend, seed, and runtime.
+- Done: report feasibility separately from objective quality.
+- Done: connect the QUBO/QAOA workflow to Member 2's benchmark exports.
+- Done: add multi-start QAOA to improve seed-sensitive results.
+- Remaining: benchmark medium and large scenarios.
+- Remaining: compare against stronger classical baselines beyond greedy.
+- Remaining: tune runtime, attempts, shots, repetitions, and penalty weights.
+- Remaining: test whether any quantum advantage claim is defensible.
+- Remaining: document final hackathon experiment table.
 
 ## Next modelling decisions
 
-Hospital assignment, capacity, response-time thresholds, and mandatory coverage
-should be added only after the ambulance POC is stable. They can be represented
-with additional variables or a staged optimisation pipeline.
+Before the 30 June 2026 hackathon, the priority is experimentation rather than
+adding many new variables. Hospital assignment, capacity, response-time
+thresholds, and mandatory coverage can be represented with additional variables
+or a staged optimisation pipeline, but they should be added only after the
+ambulance assignment benchmarks are stable on small, medium, and large cases.

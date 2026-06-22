@@ -119,4 +119,7 @@ the full QUBO matrix construction.
 | 10 | 20 | 200 | ❌ Classical exact solver infeasible |
 
 The dashboard enforces the 24-variable limit when using the exact solver.
-Connect Member 1's Qiskit QAOA solver to handle larger scenarios.
+Member 1's Qiskit QAOA solver is available for larger scenarios, with
+multi-start QAOA used in benchmarks when solution quality is more important
+than runtime. Medium and large benchmark validation is still required before
+making performance or quantum-advantage claims.
