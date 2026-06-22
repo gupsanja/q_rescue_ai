@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from itertools import product
+from collections.abc import Callable
 from typing import Protocol
 
 import numpy as np
@@ -94,3 +95,58 @@ class QiskitQAOASolver:
         named_sample = {name: round(value) for name, value in result.variables_dict.items()}
         sample = conversion.decode_sample(named_sample)
         return sample, model.evaluate(sample)
+
+
+class MultiStartQAOASolver:
+    """Run QAOA multiple times and keep the lowest-energy sample."""
+
+    name = "qiskit-qaoa-multistart"
+
+    def __init__(
+        self,
+        reps: int = 1,
+        shots: int = 2048,
+        seed: int = 42,
+        maxiter: int = 100,
+        attempts: int = 4,
+        solver_factory: Callable[[int], QuboSolver] | None = None,
+    ) -> None:
+        if attempts < 1:
+            raise ValueError("QAOA attempts must be at least 1")
+
+        self.reps = reps
+        self.shots = shots
+        self.seed = seed
+        self.maxiter = maxiter
+        self.attempts = attempts
+        self.attempt_seeds = self._generate_attempt_seeds(seed, attempts)
+        self._solver_factory = solver_factory or self._build_single_run_solver
+
+    def solve(self, model: QuboModel) -> tuple[dict[Variable, int], float]:
+        best_sample: dict[Variable, int] | None = None
+        best_value = float("inf")
+
+        for seed in self.attempt_seeds:
+            solver = self._solver_factory(seed)
+            sample, value = solver.solve(model)
+            if value < best_value:
+                best_sample = sample
+                best_value = value
+
+        if best_sample is None:
+            raise RuntimeError("Multi-start QAOA did not run any attempts")
+        return best_sample, best_value
+
+    def _build_single_run_solver(self, seed: int) -> QiskitQAOASolver:
+        return QiskitQAOASolver(
+            reps=self.reps,
+            shots=self.shots,
+            seed=seed,
+            maxiter=self.maxiter,
+        )
+
+    @staticmethod
+    def _generate_attempt_seeds(seed: int, attempts: int) -> list[int]:
+        if attempts == 1:
+            return [seed]
+        return np.random.default_rng(seed).integers(0, 2**31 - 1, size=attempts).tolist()
