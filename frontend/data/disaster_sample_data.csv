@@ -1,0 +1,6 @@
+location,disaster_type,severity,affected_population,ambulances,rescue_teams,food_units
+Hyderabad,Flood,8,45000,20,14,100
+Mumbai,Cyclone,9,85000,30,20,150
+Delhi,Earthquake,7,60000,25,18,120
+Chennai,Flood,6,30000,15,10,80
+Bangalore,Fire,5,20000,10,8,50
