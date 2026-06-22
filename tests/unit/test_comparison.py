@@ -1,9 +1,15 @@
 import pytest
+from pathlib import Path
 
 pytest.importorskip("qiskit_optimization")
 
 from q_rescue.domain.models import Ambulance, Assignment, Incident, Location, Severity
-from q_rescue.quantum.comparison import compare_solvers, sample_from_assignments
+from q_rescue.quantum.comparison import (
+    compare_benchmark_exports,
+    compare_solvers,
+    load_benchmark_exports,
+    sample_from_assignments,
+)
 from q_rescue.quantum.qaoa_solver import QiskitQAOASolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
 from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
@@ -83,3 +89,29 @@ def test_comparison_reports_operational_metrics_for_each_solver() -> None:
         assert benchmark.runtime_seconds >= 0.0
         assert benchmark.metrics["coverage_percent"] == 50.0
         assert len(benchmark.assignments) == 1
+
+
+def test_member_two_small_benchmark_exports_load_into_quantum_inputs() -> None:
+    benchmark_dir = Path("data/benchmarks/small")
+
+    scenario, distance_matrix, severity_mapping = load_benchmark_exports(benchmark_dir)
+
+    assert scenario.name == "Sheffield Flood Response (seed=42)"
+    assert len(scenario.ambulances) == 3
+    assert len(scenario.incidents) == 5
+    assert distance_matrix.ambulance_ids == ["A1", "A2", "A3"]
+    assert distance_matrix.incident_ids == ["I1", "I2", "I3", "I4", "I5"]
+    assert severity_mapping["I3"] == 75
+
+
+def test_member_two_small_benchmark_runs_exact_and_light_qaoa_comparison() -> None:
+    report = compare_benchmark_exports(
+        Path("data/benchmarks/small"),
+        qaoa_solver=QiskitQAOASolver(shots=256, seed=7, maxiter=20),
+    )
+
+    assert report.binary_variables == 15
+    assert report.exact.feasible
+    assert report.qaoa.solver_name == "qiskit-qaoa"
+    assert isinstance(report.qaoa.feasible, bool)
+    assert report.exact.qubo_energy <= report.classical.qubo_energy

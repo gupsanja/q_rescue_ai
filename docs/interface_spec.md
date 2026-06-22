@@ -12,7 +12,8 @@ When integrating code within the `q_rescue` package, use the typed Python models
 
 The scenario generator (`q_rescue.simulation.scenarios`) outputs a `DisasterScenario` dataclass.
 
-**Member 1 (Quantum):** Consumes `DisasterScenario` and `CostMatrix` via `AmbulanceAllocationQuboBuilder.build()`.
+**Member 1 (Quantum):** Consumes `DisasterScenario`, `DistanceMatrix`, and
+`SeverityMapping` via `AmbulanceAllocationQuboBuilder.build()`.
 **Member 4 (Classical):** Consumes `scenario.ambulances` and `scenario.incidents` via `GreedyAllocator.solve()`.
 
 ### Solvers → Dashboard / Metrics
@@ -36,8 +37,13 @@ For downstream analysis, debugging, or external tools, the simulation module exp
 #### `scenario.json`
 Contains all entities, categories, and severity mappings in a single file. Useful for web dashboards.
 
-#### `cost_matrix.json`
-Nested dictionary of pre-computed costs: `{"ambulance_id": {"incident_id": cost}}`.
+#### `distance_matrix.json`
+Nested dictionary of raw travel distances:
+`{"ambulance_id": {"incident_id": distance_km}}`.
+
+#### `severity_weights.json`
+Flat dictionary of incident priority weights:
+`{"incident_id": severity_weight}`.
 
 ### CSV Exports
 
@@ -56,9 +62,16 @@ Nested dictionary of pre-computed costs: `{"ambulance_id": {"incident_id": cost}
 |---|---|---|---|---|---|
 | H1 | Northern General Hospital | 53.4096 | -1.4565 | 1100 | 770 |
 
-#### `cost_matrix.csv`
-Rows = ambulances, Columns = incidents. Values = computed cost.
+#### `distance_matrix.csv`
+Rows = ambulances, Columns = incidents. Values = raw distance in kilometres.
 
 | ambulance_id | I1 | I2 | I3 |
 |---|---|---|---|
-| A1 | -31.97 | -15.97 | -23.95 |
+| A1 | 2.61 | 10.85 | 4.23 |
+
+#### `severity_weights.csv`
+Rows = incidents. Values = absolute priority weights.
+
+| incident_id | severity_weight |
+|---|---:|
+| I1 | 100 |
