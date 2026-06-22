@@ -69,10 +69,12 @@ def test_comparison_uses_shared_energy_and_reports_gaps() -> None:
 
     assert report.binary_variables == 2
     assert report.exact.qubo_energy <= report.classical.qubo_energy
+    assert report.exact.qubo_energy == pytest.approx(report.optimal_classical.qubo_energy)
     assert report.exact.qubo_energy <= report.qaoa.qubo_energy
     assert report.classical_gap == pytest.approx(
         report.classical.qubo_energy - report.exact.qubo_energy
     )
+    assert report.optimal_classical_gap == pytest.approx(0.0)
     assert report.qaoa_gap == pytest.approx(report.qaoa.qubo_energy - report.exact.qubo_energy)
     assert report.exact.feasible
     assert report.qaoa.feasible
@@ -85,7 +87,7 @@ def test_comparison_reports_operational_metrics_for_each_solver() -> None:
         qaoa_solver=QiskitQAOASolver(shots=512, seed=7, maxiter=30),
     )
 
-    for benchmark in (report.classical, report.exact, report.qaoa):
+    for benchmark in (report.classical, report.optimal_classical, report.exact, report.qaoa):
         assert benchmark.runtime_seconds >= 0.0
         assert benchmark.metrics["coverage_percent"] == 50.0
         assert len(benchmark.assignments) == 1
@@ -114,7 +116,9 @@ def test_member_two_small_benchmark_runs_exact_and_light_qaoa_comparison() -> No
     assert report.exact.feasible
     assert report.qaoa.solver_name == "qiskit-qaoa"
     assert isinstance(report.qaoa.feasible, bool)
+    assert report.optimal_classical.solver_name == "classical-optimal-flow"
     assert report.exact.qubo_energy <= report.classical.qubo_energy
+    assert report.exact.qubo_energy == pytest.approx(report.optimal_classical.qubo_energy)
 
 
 def test_comparison_can_skip_exact_for_large_benchmarks() -> None:
@@ -127,8 +131,10 @@ def test_comparison_can_skip_exact_for_large_benchmarks() -> None:
     assert report.exact is None
     assert report.qaoa is not None
     assert report.classical_gap is None
+    assert report.optimal_classical_gap is None
     assert report.qaoa_gap is None
     assert report.classical_relative_gap_percent is None
+    assert report.optimal_classical_relative_gap_percent is None
     assert report.qaoa_relative_gap_percent is None
 
 

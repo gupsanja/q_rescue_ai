@@ -99,6 +99,7 @@ def _print_report(report: ComparisonReport) -> None:
     )
     print("-" * 104)
     _print_benchmark(report.classical)
+    _print_benchmark(report.optimal_classical)
     if report.exact is None:
         print(
             f"{'exact-enumeration':<20} {'N/A':>12} {'N/A':>12} {'N/A':>14} {'N/A':>10} {'N/A':>10} {'N/A':>10}"
@@ -116,6 +117,7 @@ def _print_report(report: ComparisonReport) -> None:
     print()
     if report.exact is None:
         print("Classical gap from exact: N/A (exact enumeration skipped)")
+        print("Optimal-classical gap from exact: N/A (exact enumeration skipped)")
         print("QAOA gap from exact: N/A (exact enumeration skipped)")
     else:
         print(
@@ -123,10 +125,14 @@ def _print_report(report: ComparisonReport) -> None:
             f"({report.classical_relative_gap_percent:.2f}%)"
         )
         print(
+            f"Optimal-classical gap from exact: {report.optimal_classical_gap:.6f} "
+            f"({report.optimal_classical_relative_gap_percent:.2f}%)"
+        )
+        print(
             f"QAOA gap from exact: {report.qaoa_gap:.6f} ({report.qaoa_relative_gap_percent:.2f}%)"
         )
 
-    benchmarks = [report.classical]
+    benchmarks = [report.classical, report.optimal_classical]
     if report.exact is not None:
         benchmarks.append(report.exact)
     if report.qaoa is not None:

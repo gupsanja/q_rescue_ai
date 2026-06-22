@@ -122,6 +122,7 @@ was improved.
 | Sheffield benchmark integration | Connected the quantum workflow to Member 2's exported `scenario`, `distance_matrix`, and `severity_weights` files. | Single-start QAOA was still feasible, but much worse than exact on seed 42. |
 | 22 June 2026 multi-start update | Added deterministic multi-start QAOA and kept the best QUBO energy across attempts. | QAOA matched exact enumeration on the small Sheffield benchmark, with higher runtime. |
 | 22 June 2026 scale check | Added benchmark flags to skip exact and local QAOA when the problem is too large. | Medium and large benchmark inputs run through the comparison pipeline with honest `N/A` fields. |
+| 22 June 2026 stronger baseline | Added a min-cost-flow classical optimiser for the same one-to-one assignment objective. | Greedy is no longer the only classical baseline; the stronger baseline exposes objective-weight tuning needs. |
 
 ### Stage 1: Week 1 synthetic POC result
 
@@ -253,6 +254,41 @@ needs a different strategy such as decomposition, a matrix-product-state style
 simulator, a sampling heuristic, or a stronger classical baseline for
 comparison.
 
+### Stage 5: Stronger classical baseline
+
+Greedy allocation is useful because it is simple and prioritises severe
+incidents first, but it is not a strong optimisation baseline. A new
+`classical-optimal-flow` baseline solves the current one-to-one assignment
+objective with min-cost flow. For feasible assignments, this matches the linear
+part of the QUBO objective without needing to enumerate every binary state.
+
+On the small benchmark, `classical-optimal-flow`, exact enumeration, and
+multi-start QAOA all selected the same assignment:
+
+| Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Classical greedy | 11.532364 | 0.000015 s | 4.511 km | 60% | 100% | Yes |
+| Classical optimal flow | 9.987297 | 0.000097 s | 3.829 km | 60% | 100% | Yes |
+| Exact enumeration | 9.987297 | 0.523348 s | 3.829 km | 60% | 100% | Yes |
+| Multi-start QAOA simulator | 9.987297 | 20.326824 s | 3.829 km | 60% | 100% | Yes |
+
+On medium and large benchmarks, exact enumeration and local statevector QAOA
+were skipped, but the new baseline gives a stronger classical reference:
+
+| Benchmark | Binary variables | Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Medium Sheffield flood | 200 | Greedy | 50.890622 | 0.000046 s | 5.864 km | 50.0% | 100.0% | Yes |
+| Medium Sheffield flood | 200 | Optimal flow | 16.399744 | 0.001241 s | 2.215 km | 50.0% | 0.0% | Yes |
+| Large Sheffield city-wide | 2000 | Greedy | 75.342444 | 0.000101 s | 4.742 km | 20.0% | 100.0% | Yes |
+| Large Sheffield city-wide | 2000 | Optimal flow | 10.443849 | 0.020824 s | 1.235 km | 20.0% | 38.9% | Yes |
+
+This is an important modelling finding. The optimal-flow baseline improves the
+current QUBO energy and distance metrics, but its critical coverage drops on
+larger scenarios. That means the current objective weights make distance too
+dominant when many incidents compete for limited ambulances. The next modelling
+task is to tune severity weighting or add a hard critical-priority constraint
+before making any operational-quality claims.
+
 ## Assumptions for the first POC
 
 - Each ambulance serves at most one incident during one decision window.
@@ -272,7 +308,8 @@ comparison.
 - Done: connect the QUBO/QAOA workflow to Member 2's benchmark exports.
 - Done: add multi-start QAOA to improve seed-sensitive results.
 - Done: load and validate medium and large benchmark inputs in safe mode.
-- Remaining: compare against stronger classical baselines beyond greedy.
+- Done: compare against a stronger classical min-cost-flow baseline.
+- Remaining: tune severity weighting or add hard critical-priority constraints.
 - Remaining: tune runtime, attempts, shots, repetitions, and penalty weights.
 - Remaining: test whether any quantum advantage claim is defensible.
 - Remaining: document final hackathon experiment table.
