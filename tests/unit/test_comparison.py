@@ -115,3 +115,33 @@ def test_member_two_small_benchmark_runs_exact_and_light_qaoa_comparison() -> No
     assert report.qaoa.solver_name == "qiskit-qaoa"
     assert isinstance(report.qaoa.feasible, bool)
     assert report.exact.qubo_energy <= report.classical.qubo_energy
+
+
+def test_comparison_can_skip_exact_for_large_benchmarks() -> None:
+    report = compare_solvers(
+        _small_scenario(),
+        qaoa_solver=QiskitQAOASolver(shots=256, seed=7, maxiter=20),
+        run_exact=False,
+    )
+
+    assert report.exact is None
+    assert report.qaoa is not None
+    assert report.classical_gap is None
+    assert report.qaoa_gap is None
+    assert report.classical_relative_gap_percent is None
+    assert report.qaoa_relative_gap_percent is None
+
+
+def test_comparison_can_skip_qaoa_for_statevector_scale_limits() -> None:
+    report = compare_solvers(
+        _small_scenario(),
+        run_qaoa=False,
+    )
+
+    assert report.exact is not None
+    assert report.qaoa is None
+    assert report.classical_gap == pytest.approx(
+        report.classical.qubo_energy - report.exact.qubo_energy
+    )
+    assert report.qaoa_gap is None
+    assert report.qaoa_relative_gap_percent is None

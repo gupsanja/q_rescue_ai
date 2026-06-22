@@ -121,6 +121,7 @@ was improved.
 | Week 1 synthetic POC | Built the first QUBO and ran single-start QAOA on a generated 3 ambulance / 5 incident problem. | QAOA produced a feasible assignment, but quality was worse than exact. |
 | Sheffield benchmark integration | Connected the quantum workflow to Member 2's exported `scenario`, `distance_matrix`, and `severity_weights` files. | Single-start QAOA was still feasible, but much worse than exact on seed 42. |
 | 22 June 2026 multi-start update | Added deterministic multi-start QAOA and kept the best QUBO energy across attempts. | QAOA matched exact enumeration on the small Sheffield benchmark, with higher runtime. |
+| 22 June 2026 scale check | Added benchmark flags to skip exact and local QAOA when the problem is too large. | Medium and large benchmark inputs run through the comparison pipeline with honest `N/A` fields. |
 
 ### Stage 1: Week 1 synthetic POC result
 
@@ -216,6 +217,42 @@ but it is not evidence of quantum advantage. Exact enumeration and greedy are
 still faster at this scale. The next experiments must test larger scenarios,
 runtime, repeated trials, and stronger classical baselines.
 
+### Stage 4: Medium and large benchmark scale check
+
+Medium and large benchmark files are now loadable through the same comparison
+script. These scenarios are too large for the exact enumerator, and the current
+local QAOA implementation uses statevector sampling, which is not realistic for
+hundreds or thousands of binary variables. For that reason, the comparison CLI
+supports explicit skip flags:
+
+```bash
+.venv/bin/python scripts/compare_solvers.py \
+  --benchmark-dir data/benchmarks/medium \
+  --skip-exact \
+  --skip-qaoa
+
+.venv/bin/python scripts/compare_solvers.py \
+  --benchmark-dir data/benchmarks/large \
+  --skip-exact \
+  --skip-qaoa
+```
+
+The skipped solvers are printed as `N/A`. This is intentional: it avoids
+pretending that exact or local statevector QAOA results exist at scales where
+they were not run.
+
+| Benchmark | Ambulances | Incidents | Binary variables | Solver run | QUBO energy | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| Medium Sheffield flood | 10 | 20 | 200 | Classical greedy | 50.890622 | 5.864 km | 50.0% | 100.0% | Yes |
+| Large Sheffield city-wide | 20 | 100 | 2000 | Classical greedy | 75.342444 | 4.742 km | 20.0% | 100.0% | Yes |
+
+This scale check proves that the benchmark data interface works beyond the
+small proof of concept. It also exposes the next research problem: to evaluate
+quantum or quantum-inspired behaviour at medium and large scale, the project
+needs a different strategy such as decomposition, a matrix-product-state style
+simulator, a sampling heuristic, or a stronger classical baseline for
+comparison.
+
 ## Assumptions for the first POC
 
 - Each ambulance serves at most one incident during one decision window.
@@ -234,7 +271,7 @@ runtime, repeated trials, and stronger classical baselines.
 - Done: report feasibility separately from objective quality.
 - Done: connect the QUBO/QAOA workflow to Member 2's benchmark exports.
 - Done: add multi-start QAOA to improve seed-sensitive results.
-- Remaining: benchmark medium and large scenarios.
+- Done: load and validate medium and large benchmark inputs in safe mode.
 - Remaining: compare against stronger classical baselines beyond greedy.
 - Remaining: tune runtime, attempts, shots, repetitions, and penalty weights.
 - Remaining: test whether any quantum advantage claim is defensible.
