@@ -31,6 +31,12 @@ def test_qubo_contains_one_variable_per_candidate_assignment() -> None:
     assert ("A1", "I1") in model.variables
 
 
+def test_qubo_default_severity_weight_matches_project_config() -> None:
+    builder = AmbulanceAllocationQuboBuilder()
+
+    assert builder.severity_weight == 8.0
+
+
 def test_exclusion_penalty_discourages_duplicate_ambulance_use() -> None:
     ambulances, incidents, dm, sm = _mock_data()
     model = AmbulanceAllocationQuboBuilder(constraint_penalty=1000).build(

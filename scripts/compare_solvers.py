@@ -10,16 +10,23 @@ from q_rescue.quantum.comparison import (
     compare_solvers,
 )
 from q_rescue.quantum.qaoa_solver import MultiStartQAOASolver, QiskitQAOASolver
+from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
 from q_rescue.simulation.generator import generate_scenario
 
 
 def main() -> None:
     args = _parse_args()
     qaoa_solver = _build_qaoa_solver(args)
+    builder = AmbulanceAllocationQuboBuilder(
+        distance_weight=args.distance_weight,
+        severity_weight=args.severity_weight,
+        constraint_penalty=args.constraint_penalty,
+    )
 
     if args.benchmark_dir:
         report = compare_benchmark_exports(
             args.benchmark_dir,
+            builder=builder,
             qaoa_solver=qaoa_solver,
             run_exact=not args.skip_exact,
             run_qaoa=not args.skip_qaoa,
@@ -33,6 +40,7 @@ def main() -> None:
         )
         report = compare_solvers(
             scenario,
+            builder=builder,
             qaoa_solver=qaoa_solver,
             run_exact=not args.skip_exact,
             run_qaoa=not args.skip_qaoa,
@@ -48,6 +56,9 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--reps", type=int, default=1)
     parser.add_argument("--shots", type=int, default=1024)
     parser.add_argument("--maxiter", type=int, default=100)
+    parser.add_argument("--distance-weight", type=float, default=1.0)
+    parser.add_argument("--severity-weight", type=float, default=8.0)
+    parser.add_argument("--constraint-penalty", type=float, default=100.0)
     parser.add_argument(
         "--qaoa-attempts",
         type=int,

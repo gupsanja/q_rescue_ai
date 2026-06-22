@@ -61,7 +61,7 @@ class OptimalAssignmentAllocator:
 
     name = "classical-optimal-flow"
 
-    def __init__(self, distance_weight: float = 1.0, severity_weight: float = 1.0) -> None:
+    def __init__(self, distance_weight: float = 1.0, severity_weight: float = 8.0) -> None:
         self.distance_weight = distance_weight
         self.severity_weight = severity_weight
 

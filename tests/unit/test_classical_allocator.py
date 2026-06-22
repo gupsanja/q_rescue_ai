@@ -38,7 +38,18 @@ def test_optimal_allocator_beats_greedy_local_choice() -> None:
         ("A1", "I-high"),
         ("A2", "I-critical"),
     ]
-    assert optimal.objective_value < sum(assignment.distance for assignment in greedy.assignments)
+    greedy_objective = sum(
+        distance_matrix.matrix[assignment.ambulance_id][assignment.incident_id]
+        - 8.0 * severity_mapping[assignment.incident_id] / 100.0
+        for assignment in greedy.assignments
+    )
+    assert optimal.objective_value < greedy_objective
+
+
+def test_optimal_allocator_default_severity_weight_matches_project_config() -> None:
+    allocator = OptimalAssignmentAllocator()
+
+    assert allocator.severity_weight == 8.0
 
 
 def test_optimal_allocator_returns_empty_result_for_empty_inputs() -> None:
