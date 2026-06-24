@@ -121,6 +121,9 @@ was improved.
 | Week 1 synthetic POC | Built the first QUBO and ran single-start QAOA on a generated 3 ambulance / 5 incident problem. | QAOA produced a feasible assignment, but quality was worse than exact. |
 | Sheffield benchmark integration | Connected the quantum workflow to Member 2's exported `scenario`, `distance_matrix`, and `severity_weights` files. | Single-start QAOA was still feasible, but much worse than exact on seed 42. |
 | 22 June 2026 multi-start update | Added deterministic multi-start QAOA and kept the best QUBO energy across attempts. | QAOA matched exact enumeration on the small Sheffield benchmark, with higher runtime. |
+| 22 June 2026 scale check | Added benchmark flags to skip exact and local QAOA when the problem is too large. | Medium and large benchmark inputs run through the comparison pipeline with honest `N/A` fields. |
+| 22 June 2026 stronger baseline | Added a min-cost-flow classical optimiser for the same one-to-one assignment objective. | Greedy is no longer the only classical baseline; the stronger baseline exposes objective-weight tuning needs. |
+| 22 June 2026 severity tuning | Aligned solver defaults with `severity_weight=8.0` and added CLI weight overrides. | Higher severity weight restores critical coverage, with a distance tradeoff. |
 
 ### Stage 1: Week 1 synthetic POC result
 
@@ -216,6 +219,126 @@ but it is not evidence of quantum advantage. Exact enumeration and greedy are
 still faster at this scale. The next experiments must test larger scenarios,
 runtime, repeated trials, and stronger classical baselines.
 
+### Stage 4: Medium and large benchmark scale check
+
+Medium and large benchmark files are now loadable through the same comparison
+script. These scenarios are too large for the exact enumerator, and the current
+local QAOA implementation uses statevector sampling, which is not realistic for
+hundreds or thousands of binary variables. For that reason, the comparison CLI
+supports explicit skip flags:
+
+```bash
+.venv/bin/python scripts/compare_solvers.py \
+  --benchmark-dir data/benchmarks/medium \
+  --skip-exact \
+  --skip-qaoa
+
+.venv/bin/python scripts/compare_solvers.py \
+  --benchmark-dir data/benchmarks/large \
+  --skip-exact \
+  --skip-qaoa
+```
+
+The skipped solvers are printed as `N/A`. This is intentional: it avoids
+pretending that exact or local statevector QAOA results exist at scales where
+they were not run.
+
+| Benchmark | Ambulances | Incidents | Binary variables | Solver run | QUBO energy | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| Medium Sheffield flood | 10 | 20 | 200 | Classical greedy | 50.890622 | 5.864 km | 50.0% | 100.0% | Yes |
+| Large Sheffield city-wide | 20 | 100 | 2000 | Classical greedy | 75.342444 | 4.742 km | 20.0% | 100.0% | Yes |
+
+This scale check proves that the benchmark data interface works beyond the
+small proof of concept. It also exposes the next research problem: to evaluate
+quantum or quantum-inspired behaviour at medium and large scale, the project
+needs a different strategy such as decomposition, a matrix-product-state style
+simulator, a sampling heuristic, or a stronger classical baseline for
+comparison.
+
+### Stage 5: Stronger classical baseline, before severity-weight alignment
+
+Greedy allocation is useful because it is simple and prioritises severe
+incidents first, but it is not a strong optimisation baseline. A new
+`classical-optimal-flow` baseline solves the current one-to-one assignment
+objective with min-cost flow. For feasible assignments, this matches the linear
+part of the QUBO objective without needing to enumerate every binary state.
+
+The first version of this baseline used `severity_weight=1.0`, which was lower
+than the documented project configuration. These numbers are kept as a
+pre-tuning diagnostic because they revealed the distance/severity tradeoff.
+
+On the small benchmark, `classical-optimal-flow`, exact enumeration, and
+multi-start QAOA all selected the same assignment:
+
+| Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Classical greedy | 11.532364 | 0.000015 s | 4.511 km | 60% | 100% | Yes |
+| Classical optimal flow | 9.987297 | 0.000097 s | 3.829 km | 60% | 100% | Yes |
+| Exact enumeration | 9.987297 | 0.523348 s | 3.829 km | 60% | 100% | Yes |
+| Multi-start QAOA simulator | 9.987297 | 20.326824 s | 3.829 km | 60% | 100% | Yes |
+
+On medium and large benchmarks, exact enumeration and local statevector QAOA
+were skipped, but the new baseline gives a stronger classical reference:
+
+| Benchmark | Binary variables | Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Medium Sheffield flood | 200 | Greedy | 50.890622 | 0.000046 s | 5.864 km | 50.0% | 100.0% | Yes |
+| Medium Sheffield flood | 200 | Optimal flow | 16.399744 | 0.001241 s | 2.215 km | 50.0% | 0.0% | Yes |
+| Large Sheffield city-wide | 2000 | Greedy | 75.342444 | 0.000101 s | 4.742 km | 20.0% | 100.0% | Yes |
+| Large Sheffield city-wide | 2000 | Optimal flow | 10.443849 | 0.020824 s | 1.235 km | 20.0% | 38.9% | Yes |
+
+This is an important modelling finding. The optimal-flow baseline improves the
+current QUBO energy and distance metrics, but its critical coverage drops on
+larger scenarios. That means the current objective weights make distance too
+dominant when many incidents compete for limited ambulances. The next modelling
+task is to tune severity weighting or add a hard critical-priority constraint
+before making any operational-quality claims.
+
+### Stage 6: Severity-weight alignment and tuning
+
+The solver defaults now match `configs/default.toml`: `distance_weight=1.0`,
+`severity_weight=8.0`, and `constraint_penalty=100.0`. The comparison CLI also
+accepts `--distance-weight`, `--severity-weight`, and `--constraint-penalty` so
+we can run explicit sensitivity experiments without changing code.
+
+With the documented default `severity_weight=8.0`, the small benchmark changes:
+greedy, optimal flow, and exact enumeration agree, while multi-start QAOA is
+still feasible but no longer exactly optimal in the tested run.
+
+| Solver | QUBO energy | Runtime (local) | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Classical greedy | -2.467636 | 0.000014 s | 4.511 km | 60% | 100% | Yes |
+| Classical optimal flow | -2.467636 | 0.000092 s | 4.511 km | 60% | 100% | Yes |
+| Exact enumeration | -2.467636 | 0.507379 s | 4.511 km | 60% | 100% | Yes |
+| Multi-start QAOA simulator | -1.915805 | 19.527434 s | 4.028 km | 60% | 100% | Yes |
+
+For medium and large benchmarks, `severity_weight=8.0` improves the objective
+but still does not guarantee full critical coverage for the optimal-flow
+baseline:
+
+| Benchmark | Severity weight | Solver | QUBO energy | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| Medium Sheffield flood | 8 | Greedy | -3.359378 | 5.864 km | 50.0% | 100.0% | Yes |
+| Medium Sheffield flood | 8 | Optimal flow | -24.889142 | 2.511 km | 50.0% | 0.0% | Yes |
+| Large Sheffield city-wide | 8 | Greedy | -61.157556 | 4.742 km | 20.0% | 100.0% | Yes |
+| Large Sheffield city-wide | 8 | Optimal flow | -108.610696 | 1.869 km | 20.0% | 72.2% | Yes |
+
+Using `--severity-weight 32` restores 100% critical coverage for both medium
+and large benchmarks in the tested scenarios, at the cost of longer average
+travel distance:
+
+| Benchmark | Severity weight | Solver | QUBO energy | Average distance | Coverage | Critical coverage | Feasible |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| Medium Sheffield flood | 32 | Greedy | -189.359378 | 5.864 km | 50.0% | 100.0% | Yes |
+| Medium Sheffield flood | 32 | Optimal flow | -204.537142 | 4.346 km | 50.0% | 100.0% | Yes |
+| Large Sheffield city-wide | 32 | Greedy | -529.157556 | 4.742 km | 20.0% | 100.0% | Yes |
+| Large Sheffield city-wide | 32 | Optimal flow | -556.243889 | 3.388 km | 20.0% | 100.0% | Yes |
+
+This gives us a clear hackathon talking point: the project can now demonstrate
+how objective weights change emergency-response behaviour. A higher severity
+reward prioritises critical incidents more aggressively, while a lower severity
+reward favours shorter travel distances.
+
 ## Assumptions for the first POC
 
 - Each ambulance serves at most one incident during one decision window.
@@ -234,8 +357,12 @@ runtime, repeated trials, and stronger classical baselines.
 - Done: report feasibility separately from objective quality.
 - Done: connect the QUBO/QAOA workflow to Member 2's benchmark exports.
 - Done: add multi-start QAOA to improve seed-sensitive results.
-- Remaining: benchmark medium and large scenarios.
-- Remaining: compare against stronger classical baselines beyond greedy.
+- Done: load and validate medium and large benchmark inputs in safe mode.
+- Done: compare against a stronger classical min-cost-flow baseline.
+- Done: align default severity weight with the project config and add CLI weight overrides.
+- Remaining: decide final demo weight, currently `8.0` for config consistency or `32.0`
+  for full critical coverage in tested medium/large scenarios.
+- Remaining: consider hard critical-priority constraints if weight tuning is not enough.
 - Remaining: tune runtime, attempts, shots, repetitions, and penalty weights.
 - Remaining: test whether any quantum advantage claim is defensible.
 - Remaining: document final hackathon experiment table.

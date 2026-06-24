@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
 
-from q_rescue.classical.allocator import GreedyAllocator
+from q_rescue.classical.allocator import GreedyAllocator, OptimalAssignmentAllocator
 from q_rescue.domain.models import (
     Ambulance,
     Assignment,
@@ -39,12 +39,15 @@ class ComparisonReport:
     scenario_name: str
     binary_variables: int
     classical: SolverBenchmark
-    exact: SolverBenchmark
-    qaoa: SolverBenchmark
-    classical_gap: float
-    qaoa_gap: float
-    classical_relative_gap_percent: float
-    qaoa_relative_gap_percent: float
+    optimal_classical: SolverBenchmark
+    exact: SolverBenchmark | None
+    qaoa: SolverBenchmark | None
+    classical_gap: float | None
+    optimal_classical_gap: float | None
+    qaoa_gap: float | None
+    classical_relative_gap_percent: float | None
+    optimal_classical_relative_gap_percent: float | None
+    qaoa_relative_gap_percent: float | None
 
 
 def compare_solvers(
@@ -52,6 +55,8 @@ def compare_solvers(
     *,
     builder: AmbulanceAllocationQuboBuilder | None = None,
     qaoa_solver: QuboSolver | None = None,
+    run_exact: bool = True,
+    run_qaoa: bool = True,
 ) -> ComparisonReport:
     """Benchmark classical, exact-QUBO, and QAOA solvers on one scenario."""
     builder = builder or AmbulanceAllocationQuboBuilder()
@@ -59,28 +64,14 @@ def compare_solvers(
     distance_matrix = build_distance_matrix(scenario)
     severity_mapping = build_severity_mapping(scenario)
 
-    model = builder.build(
-        scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping
-    )
-
-    classical = _benchmark_classical(scenario, model, distance_matrix, severity_mapping)
-    exact = _benchmark_qubo_solver(scenario, model, ExactQuboSolver(), distance_matrix)
-    qaoa = _benchmark_qubo_solver(scenario, model, qaoa_solver, distance_matrix)
-
-    classical_gap = classical.qubo_energy - exact.qubo_energy
-    qaoa_gap = qaoa.qubo_energy - exact.qubo_energy
-    denominator = max(abs(exact.qubo_energy), 1e-12)
-
-    return ComparisonReport(
-        scenario_name=scenario.name,
-        binary_variables=len(model.variables),
-        classical=classical,
-        exact=exact,
-        qaoa=qaoa,
-        classical_gap=classical_gap,
-        qaoa_gap=qaoa_gap,
-        classical_relative_gap_percent=100.0 * classical_gap / denominator,
-        qaoa_relative_gap_percent=100.0 * qaoa_gap / denominator,
+    return compare_solvers_with_inputs(
+        scenario,
+        distance_matrix,
+        severity_mapping,
+        builder=builder,
+        qaoa_solver=qaoa_solver,
+        run_exact=run_exact,
+        run_qaoa=run_qaoa,
     )
 
 
@@ -89,6 +80,8 @@ def compare_benchmark_exports(
     *,
     builder: AmbulanceAllocationQuboBuilder | None = None,
     qaoa_solver: QuboSolver | None = None,
+    run_exact: bool = True,
+    run_qaoa: bool = True,
 ) -> ComparisonReport:
     """Benchmark solvers against Member 2's exported benchmark JSON files."""
     scenario, distance_matrix, severity_mapping = load_benchmark_exports(benchmark_dir)
@@ -98,6 +91,8 @@ def compare_benchmark_exports(
         severity_mapping,
         builder=builder,
         qaoa_solver=qaoa_solver,
+        run_exact=run_exact,
+        run_qaoa=run_qaoa,
     )
 
 
@@ -108,6 +103,8 @@ def compare_solvers_with_inputs(
     *,
     builder: AmbulanceAllocationQuboBuilder | None = None,
     qaoa_solver: QuboSolver | None = None,
+    run_exact: bool = True,
+    run_qaoa: bool = True,
 ) -> ComparisonReport:
     """Benchmark solvers using pre-computed simulation outputs."""
     builder = builder or AmbulanceAllocationQuboBuilder()
@@ -117,23 +114,52 @@ def compare_solvers_with_inputs(
     )
 
     classical = _benchmark_classical(scenario, model, distance_matrix, severity_mapping)
-    exact = _benchmark_qubo_solver(scenario, model, ExactQuboSolver(), distance_matrix)
-    qaoa = _benchmark_qubo_solver(scenario, model, qaoa_solver, distance_matrix)
+    optimal_classical = _benchmark_optimal_classical(
+        scenario,
+        model,
+        distance_matrix,
+        severity_mapping,
+        builder.distance_weight,
+        builder.severity_weight,
+    )
+    exact = (
+        _benchmark_qubo_solver(scenario, model, ExactQuboSolver(), distance_matrix)
+        if run_exact
+        else None
+    )
+    qaoa = (
+        _benchmark_qubo_solver(scenario, model, qaoa_solver, distance_matrix) if run_qaoa else None
+    )
 
-    classical_gap = classical.qubo_energy - exact.qubo_energy
-    qaoa_gap = qaoa.qubo_energy - exact.qubo_energy
-    denominator = max(abs(exact.qubo_energy), 1e-12)
+    if exact is None:
+        classical_gap = None
+        optimal_classical_gap = None
+        qaoa_gap = None
+        classical_relative_gap_percent = None
+        optimal_classical_relative_gap_percent = None
+        qaoa_relative_gap_percent = None
+    else:
+        classical_gap = classical.qubo_energy - exact.qubo_energy
+        optimal_classical_gap = optimal_classical.qubo_energy - exact.qubo_energy
+        qaoa_gap = qaoa.qubo_energy - exact.qubo_energy if qaoa is not None else None
+        denominator = max(abs(exact.qubo_energy), 1e-12)
+        classical_relative_gap_percent = 100.0 * classical_gap / denominator
+        optimal_classical_relative_gap_percent = 100.0 * optimal_classical_gap / denominator
+        qaoa_relative_gap_percent = 100.0 * qaoa_gap / denominator if qaoa_gap is not None else None
 
     return ComparisonReport(
         scenario_name=scenario.name,
         binary_variables=len(model.variables),
         classical=classical,
+        optimal_classical=optimal_classical,
         exact=exact,
         qaoa=qaoa,
         classical_gap=classical_gap,
+        optimal_classical_gap=optimal_classical_gap,
         qaoa_gap=qaoa_gap,
-        classical_relative_gap_percent=100.0 * classical_gap / denominator,
-        qaoa_relative_gap_percent=100.0 * qaoa_gap / denominator,
+        classical_relative_gap_percent=classical_relative_gap_percent,
+        optimal_classical_relative_gap_percent=optimal_classical_relative_gap_percent,
+        qaoa_relative_gap_percent=qaoa_relative_gap_percent,
     )
 
 
@@ -222,6 +248,24 @@ def _benchmark_classical(
     result = GreedyAllocator().solve(
         scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping
     )
+    runtime = perf_counter() - started
+    sample = sample_from_assignments(model, result.assignments)
+    return _build_benchmark(scenario, model, sample, result.solver_name, runtime, distance_matrix)
+
+
+def _benchmark_optimal_classical(
+    scenario: DisasterScenario,
+    model: QuboModel,
+    distance_matrix: DistanceMatrix,
+    severity_mapping: SeverityMapping,
+    distance_weight: float,
+    severity_weight: float,
+) -> SolverBenchmark:
+    started = perf_counter()
+    result = OptimalAssignmentAllocator(
+        distance_weight=distance_weight,
+        severity_weight=severity_weight,
+    ).solve(scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping)
     runtime = perf_counter() - started
     sample = sample_from_assignments(model, result.assignments)
     return _build_benchmark(scenario, model, sample, result.solver_name, runtime, distance_matrix)

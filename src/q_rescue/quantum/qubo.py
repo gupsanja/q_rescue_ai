@@ -51,7 +51,7 @@ class AmbulanceAllocationQuboBuilder:
     def __init__(
         self,
         distance_weight: float = 1.0,
-        severity_weight: float = 1.0,
+        severity_weight: float = 8.0,
         constraint_penalty: float = 100.0,
     ) -> None:
         self.distance_weight = distance_weight

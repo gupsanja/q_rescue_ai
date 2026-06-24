@@ -10,17 +10,26 @@ from q_rescue.quantum.comparison import (
     compare_solvers,
 )
 from q_rescue.quantum.qaoa_solver import MultiStartQAOASolver, QiskitQAOASolver
+from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
 from q_rescue.simulation.generator import generate_scenario
 
 
 def main() -> None:
     args = _parse_args()
     qaoa_solver = _build_qaoa_solver(args)
+    builder = AmbulanceAllocationQuboBuilder(
+        distance_weight=args.distance_weight,
+        severity_weight=args.severity_weight,
+        constraint_penalty=args.constraint_penalty,
+    )
 
     if args.benchmark_dir:
         report = compare_benchmark_exports(
             args.benchmark_dir,
+            builder=builder,
             qaoa_solver=qaoa_solver,
+            run_exact=not args.skip_exact,
+            run_qaoa=not args.skip_qaoa,
         )
     else:
         scenario = generate_scenario(
@@ -31,7 +40,10 @@ def main() -> None:
         )
         report = compare_solvers(
             scenario,
+            builder=builder,
             qaoa_solver=qaoa_solver,
+            run_exact=not args.skip_exact,
+            run_qaoa=not args.skip_qaoa,
         )
     _print_report(report)
 
@@ -44,6 +56,9 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--reps", type=int, default=1)
     parser.add_argument("--shots", type=int, default=1024)
     parser.add_argument("--maxiter", type=int, default=100)
+    parser.add_argument("--distance-weight", type=float, default=1.0)
+    parser.add_argument("--severity-weight", type=float, default=8.0)
+    parser.add_argument("--constraint-penalty", type=float, default=100.0)
     parser.add_argument(
         "--qaoa-attempts",
         type=int,
@@ -54,6 +69,16 @@ def _parse_args() -> argparse.Namespace:
         "--benchmark-dir",
         type=Path,
         help="Directory containing Member 2 benchmark JSON exports",
+    )
+    parser.add_argument(
+        "--skip-exact",
+        action="store_true",
+        help="Skip exact enumeration for benchmarks above the 24-variable exact limit",
+    )
+    parser.add_argument(
+        "--skip-qaoa",
+        action="store_true",
+        help="Skip local QAOA simulation for benchmarks too large for statevector sampling",
     )
     return parser.parse_args()
 
@@ -84,17 +109,46 @@ def _print_report(report: ComparisonReport) -> None:
         f"{'Avg distance':>14} {'Coverage':>10} {'Critical':>10} {'Feasible':>10}"
     )
     print("-" * 104)
-    for benchmark in (report.classical, report.exact, report.qaoa):
-        _print_benchmark(benchmark)
+    _print_benchmark(report.classical)
+    _print_benchmark(report.optimal_classical)
+    if report.exact is None:
+        print(
+            f"{'exact-enumeration':<20} {'N/A':>12} {'N/A':>12} {'N/A':>14} {'N/A':>10} {'N/A':>10} {'N/A':>10}"
+        )
+    else:
+        _print_benchmark(report.exact)
+    if report.qaoa is None:
+        print(
+            f"{'qiskit-qaoa':<20} {'N/A':>12} {'N/A':>12} {'N/A':>14} "
+            f"{'N/A':>10} {'N/A':>10} {'N/A':>10}"
+        )
+    else:
+        _print_benchmark(report.qaoa)
 
     print()
-    print(
-        f"Classical gap from exact: {report.classical_gap:.6f} "
-        f"({report.classical_relative_gap_percent:.2f}%)"
-    )
-    print(f"QAOA gap from exact: {report.qaoa_gap:.6f} ({report.qaoa_relative_gap_percent:.2f}%)")
+    if report.exact is None:
+        print("Classical gap from exact: N/A (exact enumeration skipped)")
+        print("Optimal-classical gap from exact: N/A (exact enumeration skipped)")
+        print("QAOA gap from exact: N/A (exact enumeration skipped)")
+    else:
+        print(
+            f"Classical gap from exact: {report.classical_gap:.6f} "
+            f"({report.classical_relative_gap_percent:.2f}%)"
+        )
+        print(
+            f"Optimal-classical gap from exact: {report.optimal_classical_gap:.6f} "
+            f"({report.optimal_classical_relative_gap_percent:.2f}%)"
+        )
+        print(
+            f"QAOA gap from exact: {report.qaoa_gap:.6f} ({report.qaoa_relative_gap_percent:.2f}%)"
+        )
 
-    for benchmark in (report.classical, report.exact, report.qaoa):
+    benchmarks = [report.classical, report.optimal_classical]
+    if report.exact is not None:
+        benchmarks.append(report.exact)
+    if report.qaoa is not None:
+        benchmarks.append(report.qaoa)
+    for benchmark in benchmarks:
         assignments = ", ".join(
             f"{item.ambulance_id}->{item.incident_id}" for item in benchmark.assignments
         )
