@@ -1,6 +1,8 @@
 import pandas as pd
 import streamlit as st
 
+from adapters import ambulance_from_route
+
 
 ROUTE_TEMPLATES = [
     {
@@ -93,4 +95,6 @@ def build_ambulance_routes(count):
             }
         )
 
-    return pd.DataFrame(rows)
+    routes = pd.DataFrame(rows)
+    routes.attrs["domain_ambulances"] = [ambulance_from_route(row) for row in rows]
+    return routes

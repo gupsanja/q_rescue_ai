@@ -3,7 +3,7 @@ import streamlit as st
 from auth import (
     is_logged_in,
     log_in,
-    log_out,
+    render_sidebar_nav,
     validate_login,
 )
 from ui_theme import apply_global_style
@@ -129,9 +129,7 @@ if not is_logged_in():
     )
     st.stop()
 
-if st.sidebar.button("Log out", use_container_width=True):
-    log_out()
-    st.rerun()
+render_sidebar_nav()
 
 st.markdown(
     """

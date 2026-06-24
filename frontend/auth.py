@@ -50,13 +50,18 @@ def log_out():
     st.session_state.pop("simulation_results", None)
 
 
+def render_sidebar_nav():
+    """Render consistent user info and logout across all pages."""
+    st.sidebar.markdown(f"**{st.session_state.get('display_name', 'User')}**")
+    if st.sidebar.button("Log out", use_container_width=True):
+        log_out()
+        st.switch_page("Home.py")
+
+
 def require_login():
     if not is_logged_in():
         st.warning("Please log in before opening this page.")
         st.page_link("Home.py", label="Go to Login")
         st.stop()
 
-    st.sidebar.markdown(f"**{st.session_state.get('display_name', 'User')}**")
-    if st.sidebar.button("Log out", use_container_width=True):
-        log_out()
-        st.switch_page("Home.py")
+    render_sidebar_nav()

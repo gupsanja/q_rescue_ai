@@ -65,6 +65,7 @@ Q-Rescue-Frontend/
 |-- data/                   # Sample frontend data
 |-- pages/                  # Streamlit dashboard pages
 |-- Home.py                 # Application entry point
+|-- adapters.py             # Temporary UI-to-backend domain mapping
 |-- auth.py                 # Demo authentication and sessions
 |-- ambulance_data.py       # Ambulance route sample data
 |-- ui_theme.py             # Shared interface styling
@@ -76,9 +77,16 @@ Q-Rescue-Frontend/
 
 ## Backend integration
 
-The current calculations and tracking updates use demonstration data so the frontend can run independently. Backend services can replace the data returned by `utils.py` and `ambulance_data.py` without changing the page layout.
+The current calculations and tracking updates use demonstration data so the frontend can run independently.
+
+- `adapters.py` maps frontend demo fields to backend-style domain structures: `Severity`, `DisasterCategory`, `Location`, and `Ambulance`.
+- The disaster severity input uses the backend scale: `1=Low`, `2=Medium`, `3=High`, `4=Critical`.
+- Disaster categories use the backend set: `generic`, `flood`, `industrial_accident`, and `city_wide_emergency`.
+- Sample data is Sheffield-based to match the project context.
+- Recent simulation results are saved to a lightweight JSON file in the repository `cache/` directory. This is temporary demo persistence and should be replaced by backend API/database storage when the services layer is connected.
+
+Backend services can later replace the data returned by `utils.py` and `ambulance_data.py` without changing the page layout.
 
 ## Contribution
 
 This folder contains the frontend contribution only. Add it to the group repository under a directory such as `frontend/`, then create a feature branch and pull request for review.
-
