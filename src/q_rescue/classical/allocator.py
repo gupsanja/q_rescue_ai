@@ -61,9 +61,15 @@ class OptimalAssignmentAllocator:
 
     name = "classical-optimal-flow"
 
-    def __init__(self, distance_weight: float = 1.0, severity_weight: float = 8.0) -> None:
+    def __init__(
+        self,
+        distance_weight: float = 1.0,
+        severity_weight: float = 8.0,
+        critical_priority: bool = False,
+    ) -> None:
         self.distance_weight = distance_weight
         self.severity_weight = severity_weight
+        self.critical_priority = critical_priority
 
     def solve(
         self,
@@ -130,7 +136,14 @@ class OptimalAssignmentAllocator:
     ) -> float:
         distance = distance_matrix.matrix[ambulance_id][incident_id]
         severity_normalised = severity_mapping[incident_id] / 100.0
-        return self.distance_weight * distance - self.severity_weight * severity_normalised
+        priority_bonus = (
+            1_000_000.0 if self.critical_priority and severity_mapping[incident_id] == 100 else 0.0
+        )
+        return (
+            self.distance_weight * distance
+            - self.severity_weight * severity_normalised
+            - priority_bonus
+        )
 
 
 class _Edge:

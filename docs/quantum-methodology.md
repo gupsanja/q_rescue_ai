@@ -124,6 +124,7 @@ was improved.
 | 22 June 2026 scale check | Added benchmark flags to skip exact and local QAOA when the problem is too large. | Medium and large benchmark inputs run through the comparison pipeline with honest `N/A` fields. |
 | 22 June 2026 stronger baseline | Added a min-cost-flow classical optimiser for the same one-to-one assignment objective. | Greedy is no longer the only classical baseline; the stronger baseline exposes objective-weight tuning needs. |
 | 22 June 2026 severity tuning | Aligned solver defaults with `severity_weight=8.0` and added CLI weight overrides. | Higher severity weight restores critical coverage, with a distance tradeoff. |
+| 22 June 2026 hard critical priority | Added optional hard critical-priority penalties. | Critical coverage can be enforced directly instead of relying only on large severity weights. |
 
 ### Stage 1: Week 1 synthetic POC result
 
@@ -339,6 +340,28 @@ how objective weights change emergency-response behaviour. A higher severity
 reward prioritises critical incidents more aggressively, while a lower severity
 reward favours shorter travel distances.
 
+### Stage 7: Optional hard critical-priority constraint
+
+Weight tuning is useful, but it is still a soft preference. The QUBO builder
+now supports `critical_priority=True`, exposed in the CLI as
+`--critical-priority`. This adds a penalty requiring the model to assign as
+many critical incidents as possible, up to the available ambulance capacity.
+
+The hard-priority mode keeps the documented default `severity_weight=8.0` but
+enforces critical coverage more directly:
+
+| Benchmark | Solver | QUBO energy | Average distance | Coverage | Critical coverage | Feasible |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Small Sheffield flood | Exact enumeration | -2.467636 | 4.511 km | 60.0% | 100.0% | Yes |
+| Medium Sheffield flood | Optimal flow | -24.494510 | 2.751 km | 50.0% | 100.0% | Yes |
+| Large Sheffield city-wide | Optimal flow | -88.243889 | 3.388 km | 20.0% | 100.0% | Yes |
+
+This gives the team two defensible demo modes:
+
+- Soft priority: tune `--severity-weight` to show distance/severity tradeoffs.
+- Hard priority: use `--critical-priority` when the scenario requires critical
+  incidents to be covered first.
+
 ## Assumptions for the first POC
 
 - Each ambulance serves at most one incident during one decision window.
@@ -360,9 +383,11 @@ reward favours shorter travel distances.
 - Done: load and validate medium and large benchmark inputs in safe mode.
 - Done: compare against a stronger classical min-cost-flow baseline.
 - Done: align default severity weight with the project config and add CLI weight overrides.
+- Done: add optional hard critical-priority QUBO penalties.
 - Remaining: decide final demo weight, currently `8.0` for config consistency or `32.0`
   for full critical coverage in tested medium/large scenarios.
-- Remaining: consider hard critical-priority constraints if weight tuning is not enough.
+- Remaining: choose whether the hackathon demo should use soft tuning,
+  hard priority, or show both modes as an interactive comparison.
 - Remaining: tune runtime, attempts, shots, repetitions, and penalty weights.
 - Remaining: test whether any quantum advantage claim is defensible.
 - Remaining: document final hackathon experiment table.

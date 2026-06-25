@@ -52,6 +52,36 @@ def test_optimal_allocator_default_severity_weight_matches_project_config() -> N
     assert allocator.severity_weight == 8.0
 
 
+def test_optimal_allocator_hard_critical_priority_overrides_distance_tradeoff() -> None:
+    ambulances = [Ambulance("A1", Location(0.0, 0.0))]
+    incidents = [
+        Incident("I-low", Location(0.0, 0.0), Severity.LOW),
+        Incident("I-critical", Location(0.0, 0.0), Severity.CRITICAL),
+    ]
+    distance_matrix = DistanceMatrix(
+        matrix={"A1": {"I-low": 1.0, "I-critical": 100.0}},
+        ambulance_ids=["A1"],
+        incident_ids=["I-low", "I-critical"],
+    )
+    severity_mapping = {"I-low": 25, "I-critical": 100}
+
+    soft = OptimalAssignmentAllocator().solve(
+        ambulances,
+        incidents,
+        distance_matrix,
+        severity_mapping,
+    )
+    hard = OptimalAssignmentAllocator(critical_priority=True).solve(
+        ambulances,
+        incidents,
+        distance_matrix,
+        severity_mapping,
+    )
+
+    assert soft.assignments[0].incident_id == "I-low"
+    assert hard.assignments[0].incident_id == "I-critical"
+
+
 def test_optimal_allocator_returns_empty_result_for_empty_inputs() -> None:
     result = OptimalAssignmentAllocator().solve([], [], DistanceMatrix(), {})
 
