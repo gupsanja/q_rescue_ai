@@ -121,6 +121,7 @@ def compare_solvers_with_inputs(
         severity_mapping,
         builder.distance_weight,
         builder.severity_weight,
+        builder.critical_priority,
     )
     exact = (
         _benchmark_qubo_solver(scenario, model, ExactQuboSolver(), distance_matrix)
@@ -260,11 +261,13 @@ def _benchmark_optimal_classical(
     severity_mapping: SeverityMapping,
     distance_weight: float,
     severity_weight: float,
+    critical_priority: bool,
 ) -> SolverBenchmark:
     started = perf_counter()
     result = OptimalAssignmentAllocator(
         distance_weight=distance_weight,
         severity_weight=severity_weight,
+        critical_priority=critical_priority,
     ).solve(scenario.ambulances, scenario.incidents, distance_matrix, severity_mapping)
     runtime = perf_counter() - started
     sample = sample_from_assignments(model, result.assignments)

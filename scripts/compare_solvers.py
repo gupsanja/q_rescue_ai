@@ -21,6 +21,7 @@ def main() -> None:
         distance_weight=args.distance_weight,
         severity_weight=args.severity_weight,
         constraint_penalty=args.constraint_penalty,
+        critical_priority=args.critical_priority,
     )
 
     if args.benchmark_dir:
@@ -59,6 +60,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--distance-weight", type=float, default=1.0)
     parser.add_argument("--severity-weight", type=float, default=8.0)
     parser.add_argument("--constraint-penalty", type=float, default=100.0)
+    parser.add_argument(
+        "--critical-priority",
+        action="store_true",
+        help="Add a hard QUBO penalty to cover as many critical incidents as possible",
+    )
     parser.add_argument(
         "--qaoa-attempts",
         type=int,
@@ -139,9 +145,13 @@ def _print_report(report: ComparisonReport) -> None:
             f"Optimal-classical gap from exact: {report.optimal_classical_gap:.6f} "
             f"({report.optimal_classical_relative_gap_percent:.2f}%)"
         )
-        print(
-            f"QAOA gap from exact: {report.qaoa_gap:.6f} ({report.qaoa_relative_gap_percent:.2f}%)"
-        )
+        if report.qaoa_gap is None:
+            print("QAOA gap from exact: N/A (QAOA skipped)")
+        else:
+            print(
+                f"QAOA gap from exact: {report.qaoa_gap:.6f} "
+                f"({report.qaoa_relative_gap_percent:.2f}%)"
+            )
 
     benchmarks = [report.classical, report.optimal_classical]
     if report.exact is not None:

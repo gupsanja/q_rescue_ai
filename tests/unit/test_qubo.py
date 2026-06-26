@@ -112,3 +112,31 @@ def test_solver_prioritises_critical_incident_when_resources_are_scarce() -> Non
 
     assert sample[("A1", "I-critical")] == 1
     assert sample[("A1", "I-low")] == 0
+
+
+def test_hard_critical_priority_penalty_overrides_distance_tradeoff() -> None:
+    ambulances = [Ambulance("A1", Location(0, 0))]
+    incidents = [
+        Incident("I-low", Location(1, 0), Severity.LOW),
+        Incident("I-critical", Location(100, 0), Severity.CRITICAL),
+    ]
+    dm = DistanceMatrix(
+        matrix={"A1": {"I-low": 1.0, "I-critical": 100.0}},
+        ambulance_ids=["A1"],
+        incident_ids=["I-low", "I-critical"],
+    )
+    sm = {"I-low": 25, "I-critical": 100}
+
+    soft_model = AmbulanceAllocationQuboBuilder().build(ambulances, incidents, dm, sm)
+    hard_model = AmbulanceAllocationQuboBuilder(critical_priority=True).build(
+        ambulances,
+        incidents,
+        dm,
+        sm,
+    )
+
+    soft_sample, _ = ExactQuboSolver().solve(soft_model)
+    hard_sample, _ = ExactQuboSolver().solve(hard_model)
+
+    assert soft_sample[("A1", "I-low")] == 1
+    assert hard_sample[("A1", "I-critical")] == 1
