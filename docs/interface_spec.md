@@ -26,6 +26,11 @@ All solvers must return an `OptimizationResult` containing:
 
 **Member 3 (Dashboard):** Uses `q_rescue.services.response_service.compare_allocators()` which accepts a `DisasterScenario` and returns the metrics and `OptimizationResult` for both solvers.
 
+For the hackathon UI, use `q_rescue.services.allocation_output` when the
+dashboard needs one JSON payload containing both the simulated scenario and the
+allocation results. This accepts either a UI request with disaster parameters or
+explicit ambulance/incident/hospital arrays.
+
 ---
 
 ## 2. External Exports (CSV & JSON)
@@ -44,6 +49,45 @@ Nested dictionary of raw travel distances:
 #### `severity_weights.json`
 Flat dictionary of incident priority weights:
 `{"incident_id": severity_weight}`.
+
+#### `allocation_results.json`
+UI-ready allocation output produced by:
+
+```bash
+.venv/bin/python scripts/generate_allocation_outputs.py
+```
+
+The payload includes:
+- `scenario`: category, entity counts, ambulances, incidents, and hospitals
+- `inputs`: raw `distance_matrix` and `severity_weights`
+- `optimization`: binary variable count, QUBO settings, and gaps from exact
+- `solvers`: assignment lists and stats for `classical-greedy`,
+  `classical-optimal-flow`, `exact-enumeration`, and `qiskit-qaoa`
+
+The UI can also submit a single request:
+
+```json
+{
+  "scenario": {
+    "category": "flood",
+    "ambulances": 10,
+    "incidents": 20,
+    "seed": 42
+  },
+  "optimisation": {
+    "critical_priority": true,
+    "run_qaoa": false
+  }
+}
+```
+
+and generate output with:
+
+```bash
+.venv/bin/python scripts/generate_allocation_outputs.py \
+  --request-json data/outputs/ui_request.json \
+  --output data/outputs/allocation_results.json
+```
 
 ### CSV Exports
 
