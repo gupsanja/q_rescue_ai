@@ -18,9 +18,9 @@ def main() -> None:
 
     if args.request_json:
         request = _read_json(args.request_json)
-        payload = build_allocation_output_from_request(request)
+        allocation_result = build_allocation_output_from_request(request)
         output_path = args.output or Path("data/outputs/allocation_results.json")
-        write_json_output(payload, output_path)
+        write_json_output(allocation_result, output_path)
         print(f"Wrote {output_path}")
         return
 
@@ -37,9 +37,9 @@ def main() -> None:
     for benchmark_dir in sorted(args.benchmark_root.iterdir()):
         if not benchmark_dir.is_dir() or not (benchmark_dir / "scenario.json").exists():
             continue
-        payload = build_allocation_output_from_benchmark(benchmark_dir, settings=settings)
+        allocation_result = build_allocation_output_from_benchmark(benchmark_dir, settings=settings)
         output_path = benchmark_dir / "allocation_results.json"
-        write_json_output(payload, output_path)
+        write_json_output(allocation_result, output_path)
         generated.append(output_path)
 
     for output_path in generated:

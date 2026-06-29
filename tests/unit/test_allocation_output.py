@@ -9,7 +9,7 @@ from q_rescue.services.allocation_output import (
 from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
 
 
-def test_ui_request_generates_allocation_json_payload() -> None:
+def test_ui_request_generates_allocation_json_result() -> None:
     request = {
         "scenario": {
             "category": "flood",
@@ -24,21 +24,21 @@ def test_ui_request_generates_allocation_json_payload() -> None:
         },
     }
 
-    payload = build_allocation_output_from_request(request)
+    allocation_result = build_allocation_output_from_request(request)
 
-    assert payload["source"] == "ui_request"
-    assert payload["scenario"]["category"] == "flood"
-    assert payload["scenario"]["counts"] == {
+    assert allocation_result["source"] == "ui_request"
+    assert allocation_result["scenario"]["category"] == "flood"
+    assert allocation_result["scenario"]["counts"] == {
         "ambulances": 2,
         "incidents": 3,
         "hospitals": 4,
     }
-    assert payload["optimization"]["binary_variables"] == 6
-    assert payload["solvers"]["classical-greedy"]["status"] == "ok"
-    assert payload["solvers"]["classical-optimal-flow"]["status"] == "ok"
-    assert payload["solvers"]["exact-enumeration"]["status"] == "ok"
-    assert payload["solvers"]["qiskit-qaoa"]["status"] == "skipped"
-    assert len(payload["solvers"]["classical-greedy"]["assignments"]) == 2
+    assert allocation_result["optimization"]["binary_variables"] == 6
+    assert allocation_result["solvers"]["classical-greedy"]["status"] == "ok"
+    assert allocation_result["solvers"]["classical-optimal-flow"]["status"] == "ok"
+    assert allocation_result["solvers"]["exact-enumeration"]["status"] == "ok"
+    assert allocation_result["solvers"]["qiskit-qaoa"]["status"] == "skipped"
+    assert len(allocation_result["solvers"]["classical-greedy"]["assignments"]) == 2
 
 
 def test_ui_request_can_use_explicit_member_two_style_entities() -> None:
@@ -70,7 +70,7 @@ def test_ui_request_can_use_explicit_member_two_style_entities() -> None:
     assert len(scenario.hospitals) == 4
 
 
-def test_large_payload_marks_exact_and_qaoa_as_skipped() -> None:
+def test_large_result_marks_exact_and_qaoa_as_skipped() -> None:
     scenario = scenario_from_request(
         {
             "scenario": {
@@ -82,13 +82,13 @@ def test_large_payload_marks_exact_and_qaoa_as_skipped() -> None:
         }
     )
 
-    payload = build_allocation_output(
+    allocation_result = build_allocation_output(
         scenario,
         build_distance_matrix(scenario),
         build_severity_mapping(scenario),
         settings=AllocationSettings(run_exact=True, run_qaoa=True),
     )
 
-    assert payload["optimization"]["binary_variables"] == 30
-    assert payload["solvers"]["exact-enumeration"]["status"] == "skipped"
-    assert payload["solvers"]["qiskit-qaoa"]["status"] == "skipped"
+    assert allocation_result["optimization"]["binary_variables"] == 30
+    assert allocation_result["solvers"]["exact-enumeration"]["status"] == "skipped"
+    assert allocation_result["solvers"]["qiskit-qaoa"]["status"] == "skipped"
