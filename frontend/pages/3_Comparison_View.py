@@ -3,6 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from auth import require_login
+from data_sources import build_comparison_metrics, get_active_simulation_results
 from ui_theme import apply_global_style, page_header, render_table
 
 
@@ -52,21 +53,10 @@ def section_heading(title, note=None):
         )
 
 
-comparison = pd.DataFrame(
-    {
-        "Metric": [
-            "Response Time",
-            "Fuel Usage",
-            "Resource Utilisation",
-            "Route Efficiency",
-            "Allocation Accuracy",
-        ],
-        "Unit": ["minutes", "litres", "%", "%", "%"],
-        "Better When": ["Lower", "Lower", "Higher", "Higher", "Higher"],
-        "Classical": [18, 72, 78, 74, 80],
-        "Quantum": [11, 58, 91, 89, 93],
-    }
-)
+results = get_active_simulation_results()
+st.caption(f"Data source: {results.get('data_source', 'current simulation results')}")
+
+comparison = build_comparison_metrics(results)
 
 section_heading("Metric Comparison Table")
 comparison_table = comparison.rename(
@@ -87,7 +77,7 @@ line_data = comparison.melt(
 
 section_heading(
     "Line Plot Graph",
-    "The line chart compares Classical and Quantum values across each metric.",
+    "The line chart is built from the same scenario values shown in Results Dashboard.",
 )
 line_chart = px.line(
     line_data,

@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from auth import require_login
+from data_sources import get_active_simulation_results
 from ui_theme import apply_global_style, page_header, render_table
 
 
@@ -11,11 +12,8 @@ require_login()
 
 page_header("RS", "Simulation Results")
 
-if "simulation_results" not in st.session_state:
-    st.warning("Run a simulation from Disaster Input first.")
-    st.stop()
-
-results = st.session_state["simulation_results"]
+results = get_active_simulation_results()
+st.caption(f"Data source: {results.get('data_source', 'current simulation results')}")
 
 summary = pd.DataFrame(
     {
