@@ -19,7 +19,7 @@ results = st.session_state["simulation_results"]
 
 summary = pd.DataFrame(
     {
-        "Result": [
+        "Metric": [
             "Disaster Type",
             "Location",
             "Severity",
@@ -29,7 +29,7 @@ summary = pd.DataFrame(
             "Resources Needed",
             "Optimisation Score",
         ],
-        "Value": [
+        "Metric Value": [
             results["disaster_type"],
             results["location"],
             results["severity"],
@@ -44,13 +44,13 @@ summary = pd.DataFrame(
 
 resources = pd.DataFrame(
     {
-        "Resource": ["Ambulances", "Rescue Teams", "Food Units"],
-        "Available": [
+        "Resource Metric": ["Ambulances", "Rescue Teams", "Food Units"],
+        "Available Count": [
             results["available_ambulances"],
             results["available_rescue_teams"],
             results["available_food_units"],
         ],
-        "Recommended": [
+        "Recommended Count": [
             results["recommended_ambulances"],
             results["recommended_rescue_teams"],
             results["recommended_food_units"],
@@ -61,7 +61,7 @@ resources = pd.DataFrame(
 risk = pd.DataFrame(
     {
         "Risk Level": ["Low", "Medium", "High", "Critical"],
-        "Percentage": [
+        "Risk Percentage (%)": [
             results["low_risk"],
             results["medium_risk"],
             results["high_risk"],

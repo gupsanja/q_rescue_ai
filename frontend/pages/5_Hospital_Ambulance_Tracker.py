@@ -215,27 +215,40 @@ def live_tracker():
     st_folium(tracker_map, width=1200, height=480, key=f"tracker_{tick}")
 
     st.subheader("Ambulances")
+    ambulance_table = ambulances.rename(
+        columns={
+            "Speed mph": "Speed Metric (mph)",
+            "Updated": "Last Updated",
+        }
+    )
     render_table(
-        ambulances[
+        ambulance_table[
             [
                 "Ambulance ID",
                 "Current Area",
-                "Speed mph",
+                "Speed Metric (mph)",
                 "Availability",
                 "Assigned Hospital",
-                "Updated",
+                "Last Updated",
             ]
         ]
     )
 
     st.subheader("Hospitals")
+    hospital_table = hospitals.rename(
+        columns={
+            "Total Spaces": "Total Capacity Metric",
+            "Available Spaces": "Available Capacity Metric",
+            "Ambulances Available": "Ambulance Count Metric",
+        }
+    )
     render_table(
-        hospitals[
+        hospital_table[
             [
                 "Hospital",
-                "Total Spaces",
-                "Available Spaces",
-                "Ambulances Available",
+                "Total Capacity Metric",
+                "Available Capacity Metric",
+                "Ambulance Count Metric",
                 "Status",
             ]
         ]

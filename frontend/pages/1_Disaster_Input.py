@@ -226,7 +226,7 @@ if submitted:
 
     results_table = pd.DataFrame(
         {
-            "Result": [
+            "Metric": [
                 "Disaster Type",
                 "Location",
                 "Severity",
@@ -247,7 +247,7 @@ if submitted:
                 "Medium Risk",
                 "Low Risk",
             ],
-            "Value": [
+            "Metric Value": [
                 final_disaster_type,
                 final_location,
                 f"{severity_label} ({severity})",

@@ -22,12 +22,21 @@ comparison = pd.DataFrame(
             "Route Efficiency",
             "Allocation Accuracy",
         ],
+        "Unit": ["minutes", "litres", "%", "%", "%"],
+        "Better When": ["Lower", "Lower", "Higher", "Higher", "Higher"],
         "Classical": [18, 72, 78, 74, 80],
         "Quantum": [11, 58, 91, 89, 93],
     }
 )
 
-render_table(comparison)
+comparison_table = comparison.rename(
+    columns={
+        "Unit": "Metric Unit",
+        "Classical": "Classical Metric Value",
+        "Quantum": "Quantum Metric Value",
+    }
+)
+render_table(comparison_table)
 
 profile = comparison.copy()
 profile[["Classical", "Quantum"]] = profile[["Classical", "Quantum"]].astype(float)

@@ -163,10 +163,10 @@ def track_selected_ambulance():
             "Destination": [route["Destination"]],
             "Priority": [route["Patient Priority"]],
             "Status": [status],
-            "Speed": [f"{speed} mph"],
-            "Progress": [f"{progress}%"],
-            "ETA": [f"{eta_minutes} min"],
-            "Updated": [now.strftime("%H:%M:%S")],
+            "Speed Metric": [f"{speed} mph"],
+            "Progress Metric": [f"{progress}%"],
+            "ETA Metric": [f"{eta_minutes} min"],
+            "Last Updated": [now.strftime("%H:%M:%S")],
         }
     )
     render_table(trip_details)
