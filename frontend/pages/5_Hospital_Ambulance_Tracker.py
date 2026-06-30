@@ -148,9 +148,19 @@ def build_live_ambulance_data(base_data, tick, updated_time):
 
 control_col1, control_col2 = st.columns(2)
 with control_col1:
-    live_refresh = st.toggle("Live refresh", value=True)
+    live_refresh = st.toggle("Live refresh", value=False)
 with control_col2:
-    refresh_seconds = st.selectbox("Refresh every", [5, 10, 15, 30], index=1)
+    refresh_seconds = st.selectbox(
+        "Refresh every",
+        [15, 30, 60],
+        index=0,
+        disabled=not live_refresh,
+    )
+
+if live_refresh:
+    st.caption(f"Live map refreshes every {refresh_seconds} seconds.")
+else:
+    st.info("Live refresh is off for smoother viewing. Turn it on only when you need live updates.")
 
 
 @st.fragment(run_every=refresh_seconds if live_refresh else None)
@@ -212,7 +222,7 @@ def live_tracker():
             icon=folium.Icon(color=color, icon="road"),
         ).add_to(tracker_map)
 
-    st_folium(tracker_map, width=1200, height=480, key=f"tracker_{tick}")
+    st_folium(tracker_map, width=1000, height=430, key=f"tracker_{tick}")
 
     st.subheader("Ambulances")
     ambulance_table = ambulances.rename(
