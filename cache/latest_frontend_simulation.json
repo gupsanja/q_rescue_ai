@@ -1,0 +1,43 @@
+{
+  "saved_at": "2026-06-30T01:40:24",
+  "results": {
+    "disaster_type": "Generic incident",
+    "disaster_note": ";nk",
+    "location": "Sheffield City Centre",
+    "location_note": "[i;knm",
+    "severity": 3,
+    "affected_population": 25000,
+    "available_ambulances": 15,
+    "available_rescue_teams": 10,
+    "available_food_units": 80,
+    "estimated_casualties": 2250,
+    "response_time": 34,
+    "resources_needed": 61,
+    "optimisation_score": 87,
+    "recommended_ambulances": 15,
+    "recommended_rescue_teams": 10,
+    "recommended_food_units": 83,
+    "critical_risk": 36,
+    "high_risk": 24,
+    "medium_risk": 21,
+    "low_risk": 19,
+    "domain_payload": {
+      "incident": {
+        "id": "frontend-demo-incident",
+        "location": {
+          "x": 53.3811,
+          "y": -1.4701
+        },
+        "severity": "HIGH",
+        "severity_value": 3,
+        "category": "generic"
+      },
+      "ui_context": {
+        "affected_population": 25000,
+        "available_ambulances": 15,
+        "available_rescue_teams": 10,
+        "available_food_units": 80
+      }
+    }
+  }
+}

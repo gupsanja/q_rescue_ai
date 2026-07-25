@@ -10,10 +10,16 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
+# Backend allocation service (src/ package must be on the path)
+SRC_DIR = ROOT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.append(str(SRC_DIR))
+
 from adapters import (
     DISASTER_CATEGORY_OPTIONS,
     SEVERITY_OPTIONS,
     SHEFFIELD_LOCATIONS,
+    category_from_label,
     to_domain_payload,
 )
 from auth import require_login
@@ -222,7 +228,40 @@ if submitted:
     save_simulation_results(simulation_results)
     st.session_state["simulation_results"] = simulation_results
 
+    # ── Run the QUBO allocation pipeline ──────────────────────────────────
+    # incident_count is set to 2× the ambulance count so there are more
+    # incidents than vehicles, giving the solver a meaningful problem.
+    incident_count = max(available_ambulances + 1, available_ambulances * 2)
+    allocation_request = {
+        "scenario": {
+            "category": category_from_label(final_disaster_type).value,
+            "ambulances": available_ambulances,
+            "incidents": incident_count,
+            "seed": 42,
+        },
+        "optimisation": {
+            "critical_priority": True,
+            # Run exact solver only when the problem is small enough
+            "run_exact": (available_ambulances * incident_count) <= 24,
+            "run_qaoa": False,
+        },
+    }
+    with st.spinner("Running QUBO allocation optimisation…"):
+        try:
+            from q_rescue.services.allocation_output import build_allocation_output_from_request
+            allocation_result = build_allocation_output_from_request(allocation_request)
+            st.session_state["allocation_result"] = allocation_result
+            # Record when this allocation was computed so tracker pages can
+            # use it as the animation reference time.
+            import time as _time
+            st.session_state["allocation_start_time"] = _time.time()
+        except Exception as exc:  # noqa: BLE001
+            st.warning(f"Allocation optimisation unavailable: {exc}")
+            st.session_state.pop("allocation_result", None)
+    # ──────────────────────────────────────────────────────────────────────
+
     st.success("Simulation completed successfully. Go to the Results page.")
+
 
     results_table = pd.DataFrame(
         {

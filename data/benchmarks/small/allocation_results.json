@@ -1,7 +1,7 @@
 {
   "source": "benchmark_export",
   "request": {
-    "benchmark_dir": "data/benchmarks/small"
+    "benchmark_dir": "data\\benchmarks\\small"
   },
   "scenario": {
     "name": "Sheffield Flood Response (seed=42)",
@@ -171,7 +171,7 @@
       "status": "ok",
       "solver_name": "classical-greedy",
       "qubo_energy": -2.4676359999998567,
-      "runtime_seconds": 1.4042016118764877e-05,
+      "runtime_seconds": 2.6999972760677338e-05,
       "feasible": true,
       "metrics": {
         "average_distance_km": 4.510788000000001,
@@ -183,19 +183,22 @@
           "ambulance_id": "A1",
           "incident_id": "I4",
           "distance_km": 4.52498,
-          "hospital_id": null
+          "hospital_id": "H2",
+          "hospital_distance_km": 1.34683
         },
         {
           "ambulance_id": "A2",
           "incident_id": "I2",
           "distance_km": 5.547925,
-          "hospital_id": null
+          "hospital_id": "H2",
+          "hospital_distance_km": 1.55354
         },
         {
           "ambulance_id": "A3",
           "incident_id": "I3",
           "distance_km": 3.459459,
-          "hospital_id": null
+          "hospital_id": "H1",
+          "hospital_distance_km": 0.802543
         }
       ]
     },
@@ -203,7 +206,7 @@
       "status": "ok",
       "solver_name": "classical-optimal-flow",
       "qubo_energy": -2.4676359999998567,
-      "runtime_seconds": 8.083297871053219e-05,
+      "runtime_seconds": 0.00019579986110329628,
       "feasible": true,
       "metrics": {
         "average_distance_km": 4.510788000000001,
@@ -215,19 +218,22 @@
           "ambulance_id": "A1",
           "incident_id": "I4",
           "distance_km": 4.52498,
-          "hospital_id": null
+          "hospital_id": "H2",
+          "hospital_distance_km": 1.34683
         },
         {
           "ambulance_id": "A2",
           "incident_id": "I2",
           "distance_km": 5.547925,
-          "hospital_id": null
+          "hospital_id": "H2",
+          "hospital_distance_km": 1.55354
         },
         {
           "ambulance_id": "A3",
           "incident_id": "I3",
           "distance_km": 3.459459,
-          "hospital_id": null
+          "hospital_id": "H1",
+          "hospital_distance_km": 0.802543
         }
       ]
     },
@@ -235,7 +241,7 @@
       "status": "ok",
       "solver_name": "exact-enumeration",
       "qubo_energy": -2.4676359999998567,
-      "runtime_seconds": 0.4414618330192752,
+      "runtime_seconds": 1.3834786000661552,
       "feasible": true,
       "metrics": {
         "average_distance_km": 4.510788000000001,
@@ -247,19 +253,22 @@
           "ambulance_id": "A1",
           "incident_id": "I4",
           "distance_km": 4.52498,
-          "hospital_id": null
+          "hospital_id": "H2",
+          "hospital_distance_km": 1.34683
         },
         {
           "ambulance_id": "A2",
           "incident_id": "I2",
           "distance_km": 5.547925,
-          "hospital_id": null
+          "hospital_id": "H2",
+          "hospital_distance_km": 1.55354
         },
         {
           "ambulance_id": "A3",
           "incident_id": "I3",
           "distance_km": 3.459459,
-          "hospital_id": null
+          "hospital_id": "H1",
+          "hospital_distance_km": 0.802543
         }
       ]
     },

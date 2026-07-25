@@ -261,13 +261,13 @@ def _report_to_payload(
             },
         },
         "solvers": {
-            "classical-greedy": _benchmark_to_dict(report.classical),
-            "classical-optimal-flow": _benchmark_to_dict(report.optimal_classical),
+            "classical-greedy": _benchmark_to_dict(report.classical, scenario),
+            "classical-optimal-flow": _benchmark_to_dict(report.optimal_classical, scenario),
             "exact-enumeration": _optional_benchmark_to_dict(
-                report.exact, "exact-enumeration", exact_skip_reason
+                report.exact, "exact-enumeration", exact_skip_reason, scenario
             ),
             "qiskit-qaoa": _optional_benchmark_to_dict(
-                report.qaoa, "qiskit-qaoa", qaoa_skip_reason
+                report.qaoa, "qiskit-qaoa", qaoa_skip_reason, scenario
             ),
         },
     }
@@ -316,7 +316,8 @@ def _scenario_to_dict(scenario: DisasterScenario) -> dict[str, Any]:
     }
 
 
-def _benchmark_to_dict(benchmark: SolverBenchmark) -> dict[str, Any]:
+def _benchmark_to_dict(benchmark: SolverBenchmark, scenario: DisasterScenario) -> dict[str, Any]:
+    """Serialise a solver benchmark, enriching each assignment with the nearest hospital."""
     return {
         "status": "ok",
         "solver_name": benchmark.solver_name,
@@ -325,12 +326,7 @@ def _benchmark_to_dict(benchmark: SolverBenchmark) -> dict[str, Any]:
         "feasible": benchmark.feasible,
         "metrics": benchmark.metrics,
         "assignments": [
-            {
-                "ambulance_id": assignment.ambulance_id,
-                "incident_id": assignment.incident_id,
-                "distance_km": assignment.distance,
-                "hospital_id": assignment.hospital_id,
-            }
+            _assignment_to_dict(assignment, scenario)
             for assignment in benchmark.assignments
         ],
     }
@@ -340,10 +336,56 @@ def _optional_benchmark_to_dict(
     benchmark: SolverBenchmark | None,
     solver_name: str,
     skip_reason: str | None,
+    scenario: DisasterScenario,
 ) -> dict[str, Any]:
     if benchmark is not None:
-        return _benchmark_to_dict(benchmark)
+        return _benchmark_to_dict(benchmark, scenario)
     return {"status": "skipped", "solver_name": solver_name, "reason": skip_reason}
+
+
+def _assignment_to_dict(assignment: Any, scenario: DisasterScenario) -> dict[str, Any]:
+    """Serialise one assignment, injecting the nearest hospital with available beds."""
+    hospital_id, hospital_distance_km = _assign_nearest_hospital(assignment, scenario)
+    return {
+        "ambulance_id": assignment.ambulance_id,
+        "incident_id": assignment.incident_id,
+        "distance_km": assignment.distance,
+        "hospital_id": hospital_id,
+        "hospital_distance_km": hospital_distance_km,
+    }
+
+
+def _assign_nearest_hospital(
+    assignment: Any,
+    scenario: DisasterScenario,
+) -> tuple[str | None, float | None]:
+    """Return the id and distance (km) of the nearest hospital with available beds.
+
+    Falls back to the nearest hospital overall if none have available beds.
+    """
+    from math import radians, sin, cos, asin, sqrt
+
+    def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        r = 6371.0
+        φ1, φ2 = radians(lat1), radians(lat2)
+        dφ = radians(lat2 - lat1)
+        dλ = radians(lon2 - lon1)
+        a = sin(dφ / 2) ** 2 + cos(φ1) * cos(φ2) * sin(dλ / 2) ** 2
+        return r * 2 * asin(sqrt(a))
+
+    incident = next(
+        (i for i in scenario.incidents if i.id == assignment.incident_id), None
+    )
+    if incident is None or not scenario.hospitals:
+        return None, None
+
+    inc_lat, inc_lon = incident.location.x, incident.location.y
+
+    # Prefer hospitals with available beds; fall back to nearest overall
+    candidates = [h for h in scenario.hospitals if h.available_beds > 0] or list(scenario.hospitals)
+    nearest = min(candidates, key=lambda h: _haversine(inc_lat, inc_lon, h.location.x, h.location.y))
+    dist = _haversine(inc_lat, inc_lon, nearest.location.x, nearest.location.y)
+    return nearest.id, round(dist, 6)
 
 
 def _settings_to_dict(settings: AllocationSettings) -> dict[str, Any]:
