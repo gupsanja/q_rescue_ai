@@ -56,7 +56,7 @@ class OperationalConstraints:
     )
 
     @classmethod
-    def from_config(cls, config: dict) -> "OperationalConstraints":
+    def from_config(cls, config: dict) -> OperationalConstraints:
         """Instantiate from a config dict (matching ``configs/default.toml``).
 
         Reads:

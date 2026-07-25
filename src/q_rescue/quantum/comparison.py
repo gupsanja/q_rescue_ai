@@ -8,13 +8,13 @@ from q_rescue.domain.models import Assignment, OptimizationResult
 from q_rescue.metrics.evaluator import calculate_metrics
 from q_rescue.quantum.qaoa_solver import ExactQuboSolver, QiskitQAOASolver, QuboSolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder, QuboModel, Variable
-from q_rescue.simulation.generator import DisasterScenario
 from q_rescue.simulation.distance_matrix import (
-    build_distance_matrix,
-    build_severity_mapping,
     DistanceMatrix,
     SeverityMapping,
+    build_distance_matrix,
+    build_severity_mapping,
 )
+from q_rescue.simulation.generator import DisasterScenario
 
 
 @dataclass(frozen=True)

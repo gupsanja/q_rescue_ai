@@ -1,8 +1,8 @@
 from q_rescue.classical.allocator import GreedyAllocator
 from q_rescue.metrics.evaluator import calculate_metrics
 from q_rescue.quantum.optimizer import QuantumAllocator
-from q_rescue.simulation.generator import DisasterScenario
 from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
+from q_rescue.simulation.generator import DisasterScenario
 
 
 def compare_allocators(scenario: DisasterScenario) -> dict[str, dict[str, object]]:

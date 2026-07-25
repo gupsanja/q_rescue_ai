@@ -2,11 +2,11 @@ import pytest
 
 from q_rescue.domain.models import DisasterCategory, Severity
 from q_rescue.simulation.scenarios import (
-    generate_scenario_by_category,
-    generate_generic_scenario,
-    generate_flood_scenario,
-    generate_industrial_scenario,
     generate_city_wide_scenario,
+    generate_flood_scenario,
+    generate_generic_scenario,
+    generate_industrial_scenario,
+    generate_scenario_by_category,
 )
 from q_rescue.simulation.sheffield import validate_coordinates
 

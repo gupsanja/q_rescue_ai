@@ -96,7 +96,7 @@ class SheffieldRoadNetwork:
             length_m = nx.shortest_path_length(self._graph, orig_node, dest_node, weight="length")
             return length_m / 1000.0
 
-        except Exception as e:
+        except (nx.NetworkXException, ValueError) as e:
             logger.warning(
                 f"Failed to find route between {origin} and {destination}: {e}. "
                 "Falling back to Haversine distance."

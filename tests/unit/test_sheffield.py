@@ -1,14 +1,14 @@
-from random import Random
 import math
+from random import Random
 
 from q_rescue.domain.models import Location
 from q_rescue.simulation.sheffield import (
-    validate_coordinates,
-    random_sheffield_location,
-    haversine_distance,
-    clustered_location,
     SHEFFIELD_BOUNDS,
     SHEFFIELD_HOSPITALS,
+    clustered_location,
+    haversine_distance,
+    random_sheffield_location,
+    validate_coordinates,
 )
 
 
