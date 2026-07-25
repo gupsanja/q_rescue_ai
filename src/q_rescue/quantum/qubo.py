@@ -51,12 +51,14 @@ class AmbulanceAllocationQuboBuilder:
     def __init__(
         self,
         distance_weight: float = 1.0,
-        severity_weight: float = 1.0,
+        severity_weight: float = 8.0,
         constraint_penalty: float = 100.0,
+        critical_priority: bool = False,
     ) -> None:
         self.distance_weight = distance_weight
         self.severity_weight = severity_weight
         self.constraint_penalty = constraint_penalty
+        self.critical_priority = critical_priority
 
     def build(
         self,
@@ -93,6 +95,8 @@ class AmbulanceAllocationQuboBuilder:
 
         assignment_target = min(len(ambulances), len(incidents))
         self._add_cardinality_penalty(model, model.variables, assignment_target)
+        if self.critical_priority:
+            self._add_critical_priority_penalty(model, ambulances, incidents, severity_mapping)
 
         for ambulance in ambulances:
             variables = [(ambulance.id, incident.id) for incident in incidents]
@@ -125,3 +129,24 @@ class AmbulanceAllocationQuboBuilder:
             model.quadratic[(left, right)] = (
                 model.quadratic.get((left, right), 0.0) + self.constraint_penalty
             )
+
+    def _add_critical_priority_penalty(
+        self,
+        model: QuboModel,
+        ambulances: list[Ambulance],
+        incidents: list[Incident],
+        severity_mapping: SeverityMapping,
+    ) -> None:
+        critical_incidents = [
+            incident for incident in incidents if severity_mapping[incident.id] == 100
+        ]
+        target = min(len(ambulances), len(critical_incidents))
+        if target == 0:
+            return
+
+        variables = [
+            (ambulance.id, incident.id)
+            for ambulance in ambulances
+            for incident in critical_incidents
+        ]
+        self._add_cardinality_penalty(model, variables, target)

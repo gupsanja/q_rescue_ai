@@ -52,3 +52,4 @@ pip install -e ".[quantum,dev]"
 
 See `docs/team-workflow.md` for suggested branch and interface ownership.
 
+For the 30 June hackathon walkthrough, use `docs/hackathon_demo.md`.
