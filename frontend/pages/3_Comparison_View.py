@@ -1,171 +1,141 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-
 from auth import require_login
-from data_sources import build_comparison_metrics, get_active_simulation_results
+from prediction import (
+    predict_outcome,
+    quantum_optimised_outcome,
+    simulation_severity_score,
+)
 from ui_theme import apply_global_style, page_header, render_table
 
-
-st.set_page_config(page_title="Comparison View", page_icon=":balance_scale:", layout="wide")
+st.set_page_config(
+    page_title="Comparison View",
+    page_icon=":balance_scale:",
+    layout="wide",
+)
 apply_global_style()
 require_login()
 
-page_header("QO", "Optimisation Comparison")
+page_header("QO", "Outcome Comparison")
 
-st.markdown(
-    """
-    <style>
-        .comparison-section-heading {
-            margin: 1.15rem 0 0.75rem 0;
-            padding: 0.9rem 1.1rem;
-            border-left: 8px solid #ffffff;
-            border-radius: 6px;
-            background: linear-gradient(90deg, #ef232a, #7a1016);
-            color: #ffffff !important;
-            font-size: 1.28rem;
-            font-weight: 950;
-            letter-spacing: 0.02rem;
-            text-transform: uppercase;
-            box-shadow: 0 10px 24px rgba(239, 35, 42, 0.30);
-        }
-
-        .comparison-help-text {
-            margin: -0.25rem 0 0.85rem 0;
-            color: #ffffff !important;
-            font-weight: 750;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-def section_heading(title, note=None):
-    st.markdown(
-        f'<div class="comparison-section-heading">{title}</div>',
-        unsafe_allow_html=True,
+if "simulation_results" not in st.session_state:
+    st.warning("Run a simulation before opening the comparison view.")
+    st.page_link(
+        "pages/1_Disaster_Input.py",
+        label="Open disaster input",
+        icon=":material/edit_note:",
     )
-    if note:
-        st.markdown(
-            f'<p class="comparison-help-text">{note}</p>',
-            unsafe_allow_html=True,
-        )
+    st.stop()
 
+simulation = st.session_state["simulation_results"]
+prediction = predict_outcome(simulation)
+quantum = quantum_optimised_outcome(prediction)
 
-results = get_active_simulation_results()
-st.caption(f"Data source: {results.get('data_source', 'current simulation results')}")
-
-comparison = build_comparison_metrics(results)
-
-section_heading("Metric Comparison Table")
-comparison_table = comparison.rename(
-    columns={
-        "Unit": "Metric Unit",
-        "Classical": "Classical Metric Value",
-        "Quantum": "Quantum Metric Value",
-    }
-)
-render_table(comparison_table)
-
-line_data = comparison.melt(
-    id_vars=["Metric", "Unit", "Better When"],
-    value_vars=["Classical", "Quantum"],
-    var_name="Method",
-    value_name="Metric Value",
+st.warning(
+    "AI-predicted and quantum-optimised values are transparent prototype "
+    "heuristics. They are not outputs from a trained AI model or quantum solver."
 )
 
-section_heading(
-    "Line Plot Graph",
-    "The line chart is built from the same scenario values shown in Results Dashboard.",
-)
-line_chart = px.line(
-    line_data,
-    x="Metric",
-    y="Metric Value",
-    color="Method",
-    markers=True,
-    title="Classical vs Quantum Metric Trend",
-    color_discrete_map={"Classical": "#ef232a", "Quantum": "#f2f2f2"},
-)
-line_chart.update_traces(line=dict(width=4), marker=dict(size=11))
-line_chart.update_layout(
-    paper_bgcolor="#221f27",
-    plot_bgcolor="#221f27",
-    font=dict(color="#ffffff", size=14),
-    title=dict(
-        font=dict(color="#ffffff", size=24),
-        x=0.03,
-        xanchor="left",
-    ),
-    xaxis=dict(
-        title="Metric",
-        title_font=dict(color="#ffffff", size=16),
-        tickfont=dict(color="#ffffff", size=13),
-        gridcolor="rgba(255, 255, 255, 0.14)",
-    ),
-    yaxis=dict(
-        title="Metric Value",
-        title_font=dict(color="#ffffff", size=16),
-        tickfont=dict(color="#ffffff", size=13),
-        gridcolor="rgba(255, 255, 255, 0.18)",
-    ),
-    legend=dict(
-        title="Method",
-        font=dict(color="#ffffff", size=13),
-        title_font=dict(color="#ffffff", size=13),
-        orientation="h",
-        yanchor="bottom",
-        y=1.04,
-        xanchor="right",
-        x=1,
-    ),
-    margin=dict(l=60, r=40, t=90, b=70),
-)
-
-st.plotly_chart(line_chart, use_container_width=True)
-
-section_heading("Chart Breakdown")
-bar_chart = px.bar(
-    comparison,
-    x="Metric",
-    y=["Classical", "Quantum"],
-    barmode="group",
-    title="Classical vs Quantum Bar Chart",
-    color_discrete_sequence=["#ef232a", "#f2f2f2"],
-)
-bar_chart.update_layout(
-    plot_bgcolor="#221f27",
-    paper_bgcolor="#221f27",
-    font=dict(color="#ffffff", size=13),
-    title=dict(font=dict(color="#ffffff", size=21), x=0.03, xanchor="left"),
-    xaxis=dict(title="Metric", tickfont=dict(color="#ffffff")),
-    yaxis=dict(title="Metric Value", tickfont=dict(color="#ffffff")),
-    legend=dict(font=dict(color="#ffffff"), title_font=dict(color="#ffffff")),
-)
-
-totals = pd.DataFrame(
+comparison = pd.DataFrame(
     {
-        "Method": ["Classical", "Quantum"],
-        "Score": [comparison["Classical"].sum(), comparison["Quantum"].sum()],
+        "Metric": [
+            "Severity score",
+            "Estimated casualties",
+            "Response time",
+            "Ambulances",
+            "Rescue teams",
+            "Food units",
+        ],
+        "Unit": ["0–10", "people", "minutes", "units", "units", "units"],
+        "Better When": ["Lower", "Lower", "Lower", "Context", "Context", "Context"],
+        "Simulated": [
+            simulation_severity_score(simulation),
+            simulation["estimated_casualties"],
+            simulation["response_time"],
+            simulation["recommended_ambulances"],
+            simulation["recommended_rescue_teams"],
+            simulation["recommended_food_units"],
+        ],
+        "AI Predicted": [
+            prediction["severity"],
+            prediction["estimated_casualties"],
+            prediction["response_time"],
+            prediction["ambulances"],
+            prediction["rescue_teams"],
+            prediction["food_units"],
+        ],
+        "Quantum Optimised": [
+            quantum["severity"],
+            quantum["estimated_casualties"],
+            quantum["response_time"],
+            quantum["ambulances"],
+            quantum["rescue_teams"],
+            quantum["food_units"],
+        ],
     }
 )
-pie_chart = px.pie(
-    totals,
-    names="Method",
-    values="Score",
-    title="Overall Performance",
-    color_discrete_sequence=["#ef232a", "#f2f2f2"],
+
+st.subheader("Three-way outcome table")
+render_table(comparison)
+
+resource_comparison = comparison[comparison["Unit"] == "units"]
+resource_chart = px.bar(
+    resource_comparison,
+    x="Metric",
+    y=["Simulated", "AI Predicted", "Quantum Optimised"],
+    barmode="group",
+    title="Resource-demand comparison",
+    color_discrete_sequence=["#f2f2f2", "#ef232a", "#7d5fff"],
+    pattern_shape_sequence=["", "/", "x"],
+    text_auto=True,
 )
-pie_chart.update_layout(
-    paper_bgcolor="#221f27",
-    font=dict(color="#ffffff", size=13),
-    title=dict(font=dict(color="#ffffff", size=21), x=0.03, xanchor="left"),
-    legend=dict(font=dict(color="#ffffff"), title_font=dict(color="#ffffff")),
+resource_chart.update_layout(
+    plot_bgcolor="#17141c",
+    paper_bgcolor="#17141c",
+    font_color="#ffffff",
+    legend_title_text="Outcome",
+    yaxis_title="Number of units",
 )
+
+response_comparison = pd.DataFrame(
+    {
+        "Outcome": ["Simulated", "AI Predicted", "Quantum Optimised"],
+        "Response Time": [
+            simulation["response_time"],
+            prediction["response_time"],
+            quantum["response_time"],
+        ],
+    }
+)
+response_chart = px.bar(
+    response_comparison,
+    x="Outcome",
+    y="Response Time",
+    title="Response-time comparison",
+    color="Outcome",
+    pattern_shape="Outcome",
+    color_discrete_sequence=["#f2f2f2", "#ef232a", "#7d5fff"],
+    text="Response Time",
+)
+response_chart.update_layout(
+    plot_bgcolor="#17141c",
+    paper_bgcolor="#17141c",
+    font_color="#ffffff",
+    showlegend=False,
+    yaxis_title="Response time (minutes)",
+)
+response_chart.update_traces(texttemplate="%{text} min", textposition="outside")
 
 chart_col1, chart_col2 = st.columns(2)
 with chart_col1:
-    st.plotly_chart(bar_chart, use_container_width=True)
+    st.plotly_chart(resource_chart, width="stretch")
 with chart_col2:
-    st.plotly_chart(pie_chart, use_container_width=True)
+    st.plotly_chart(response_chart, width="stretch")
+
+st.caption(
+    "The prototype AI forecast uses scenario severity, population pressure, and "
+    "resource gaps. The quantum-optimised estimate applies fixed efficiency "
+    "assumptions to the forecast. Replace both with validated model/solver outputs "
+    "when backend integrations are available."
+)
