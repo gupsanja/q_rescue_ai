@@ -1,0 +1,1 @@
+"""Q-Rescue frontend package."""
