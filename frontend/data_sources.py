@@ -8,10 +8,8 @@ import streamlit as st
 from adapters import SHEFFIELD_LOCATIONS
 from utils import calculate_disaster_metrics, load_latest_simulation_results
 
-
 ROOT_DIR = Path(__file__).resolve().parent
 SAMPLE_DATA_FILE = ROOT_DIR / "data" / "disaster_sample_data.csv"
-
 
 SEVERITY_TO_RISK = {
     1: "Low",
@@ -20,7 +18,6 @@ SEVERITY_TO_RISK = {
     4: "Critical",
 }
 
-
 SEVERITY_TO_PRIORITY = {
     1: "Low",
     2: "Medium",
@@ -28,16 +25,13 @@ SEVERITY_TO_PRIORITY = {
     4: "Critical",
 }
 
-
 def _location_latitude(location_name: str) -> float:
     location = SHEFFIELD_LOCATIONS.get(location_name, SHEFFIELD_LOCATIONS["Sheffield City Centre"])
     return float(location.x)
 
-
 def _location_longitude(location_name: str) -> float:
     location = SHEFFIELD_LOCATIONS.get(location_name, SHEFFIELD_LOCATIONS["Sheffield City Centre"])
     return float(location.y)
-
 
 @st.cache_data(show_spinner=False)
 def load_disaster_sample_data() -> pd.DataFrame:
@@ -54,7 +48,6 @@ def load_disaster_sample_data() -> pd.DataFrame:
         sample_data[column] = pd.to_numeric(sample_data[column], errors="coerce").fillna(0).astype(int)
 
     return sample_data
-
 
 def _sample_row_to_results(row: pd.Series) -> dict:
     metrics = calculate_disaster_metrics(
@@ -76,7 +69,6 @@ def _sample_row_to_results(row: pd.Series) -> dict:
         **metrics,
     }
 
-
 def get_active_simulation_results() -> dict:
     """Return the single scenario used across dashboard pages.
 
@@ -87,7 +79,67 @@ def get_active_simulation_results() -> dict:
     """
     if "simulation_results" in st.session_state:
         results = dict(st.session_state["simulation_results"])
-        results["data_source"] = results.get("data_source", "current simulation results")
+
+        backend_results = results.get(
+            "backend_results",
+            {}
+        )
+
+        # Flatten backend metrics for existing UI pages
+        results.update(
+            {
+                "estimated_casualties": backend_results.get(
+                    "estimated_casualties",
+                    0,
+                ),
+                "response_time": backend_results.get(
+                    "response_time",
+                    0,
+                ),
+                "resources_needed": backend_results.get(
+                    "resources_needed",
+                    0,
+                ),
+                "optimisation_score": backend_results.get(
+                    "optimisation_score",
+                    0,
+                ),
+                "recommended_ambulances": backend_results.get(
+                    "recommended_ambulances",
+                    results.get("available_ambulances", 0),
+                ),
+                "recommended_rescue_teams": backend_results.get(
+                    "recommended_rescue_teams",
+                    results.get("available_rescue_teams", 0),
+                ),
+                "recommended_food_units": backend_results.get(
+                    "recommended_food_units",
+                    results.get("available_food_units", 0),
+                ),
+                "critical_risk": backend_results.get(
+                    "critical_risk",
+                    0,
+                ),
+                "high_risk": backend_results.get(
+                    "high_risk",
+                    0,
+                ),
+                "medium_risk": backend_results.get(
+                    "medium_risk",
+                    0,
+                ),
+                "low_risk": backend_results.get(
+                    "low_risk",
+                    0,
+                ),
+            }
+        )
+
+        results["data_source"] = results.get(
+            "data_source",
+            "current simulation results",
+        )
+
         return results
 
     cached_results = load_latest_simulation_results()
@@ -101,49 +153,136 @@ def get_active_simulation_results() -> dict:
 
 
 def build_incident_locations(results: dict | None = None) -> pd.DataFrame:
-    """Build incident rows from the CSV plus the active simulation."""
-    sample_data = load_disaster_sample_data()
+    """
+    Build incident rows from backend generated scenario data.
+    Falls back to sample CSV when no backend simulation exists.
+    """
+
     rows = []
+
+    if results:
+        backend_results = results.get(
+            "backend_results",
+            {},
+        )
+
+        allocation_output = backend_results.get(
+            "allocation_output",
+            {},
+        )
+
+        scenario = allocation_output.get(
+            "scenario",
+            {},
+        )
+
+        incidents = scenario.get(
+            "incidents",
+            [],
+        )
+
+        if incidents:
+            total_population = int(
+                results.get(
+                    "affected_population",
+                    0,
+                )
+            )
+
+            incident_population = (
+                total_population // len(incidents)
+            )
+
+            for incident in incidents:
+                severity_name = incident.get(
+                    "severity_level",
+                    "MEDIUM",
+                ).capitalize()
+
+                rows.append(
+                    {
+                        "Incident Location": incident.get(
+                            "id",
+                            "Unknown Incident",
+                        ),
+                        "Latitude": incident.get(
+                            "lat",
+                            0,
+                        ),
+                        "Longitude": incident.get(
+                            "lon",
+                            0,
+                        ),
+                        "Incident Type": incident.get(
+                            "category",
+                            results.get(
+                                "disaster_type",
+                                "Unknown",
+                            ),
+                        ),
+                        "Priority": severity_name,
+                        "Risk Level": severity_name,
+                        "Affected Population": incident_population,
+                        "Ambulances": results.get(
+                            "available_ambulances",
+                            0,
+                        ),
+                        "Rescue Teams": results.get(
+                            "available_rescue_teams",
+                            0,
+                        ),
+                        "Food Units": results.get(
+                            "available_food_units",
+                            0,
+                        ),
+                    }
+                )
+
+            return pd.DataFrame(rows)
+
+    sample_data = load_disaster_sample_data()
 
     for _, row in sample_data.iterrows():
         location_name = str(row["location"])
         severity = int(row["severity"])
+
         rows.append(
             {
                 "Incident Location": location_name,
                 "Latitude": _location_latitude(location_name),
                 "Longitude": _location_longitude(location_name),
                 "Incident Type": row["disaster_type"],
-                "Priority": SEVERITY_TO_PRIORITY.get(severity, "Medium"),
-                "Risk Level": SEVERITY_TO_RISK.get(severity, "Medium"),
-                "Affected Population": int(row["affected_population"]),
-                "Ambulances": int(row["ambulances"]),
-                "Rescue Teams": int(row["rescue_teams"]),
-                "Food Units": int(row["food_units"]),
+                "Priority": SEVERITY_TO_PRIORITY.get(
+                    severity,
+                    "Medium",
+                ),
+                "Risk Level": SEVERITY_TO_RISK.get(
+                    severity,
+                    "Medium",
+                ),
+                "Affected Population": int(
+                    row["affected_population"]
+                ),
+                "Ambulances": int(
+                    row["ambulances"]
+                ),
+                "Rescue Teams": int(
+                    row["rescue_teams"]
+                ),
+                "Food Units": int(
+                    row["food_units"]
+                ),
             }
         )
 
-    if results:
-        active_location = str(results["location"])
-        active_severity = int(results["severity"])
-        rows.insert(
-            0,
-            {
-                "Incident Location": active_location,
-                "Latitude": _location_latitude(active_location),
-                "Longitude": _location_longitude(active_location),
-                "Incident Type": results["disaster_type"],
-                "Priority": SEVERITY_TO_PRIORITY.get(active_severity, "Medium"),
-                "Risk Level": SEVERITY_TO_RISK.get(active_severity, "Medium"),
-                "Affected Population": int(results["affected_population"]),
-                "Ambulances": int(results["available_ambulances"]),
-                "Rescue Teams": int(results["available_rescue_teams"]),
-                "Food Units": int(results["available_food_units"]),
-            },
+    return (
+        pd.DataFrame(rows)
+        .drop_duplicates(
+            subset=["Incident Location"],
+            keep="first",
         )
-
-    incidents = pd.DataFrame(rows).drop_duplicates(subset=["Incident Location"], keep="first")
-    return incidents.reset_index(drop=True)
+        .reset_index(drop=True)
+    )
 
 
 def build_comparison_metrics(results: dict) -> pd.DataFrame:

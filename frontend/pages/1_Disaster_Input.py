@@ -4,8 +4,8 @@ import sys
 import pandas as pd
 import streamlit as st
 
+from backend_client import run_backend_simulation
 
-# Makes utils.py import correctly when this page runs inside Streamlit
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
@@ -19,11 +19,9 @@ from adapters import (
 from auth import require_login
 from ui_theme import apply_global_style, page_header
 from utils import (
-    calculate_disaster_metrics,
     load_latest_simulation_results,
     save_simulation_results,
 )
-
 
 st.set_page_config(page_title="Disaster Input", page_icon=":memo:", layout="wide")
 apply_global_style()
@@ -40,7 +38,6 @@ if st.session_state.get("simulation_results", {}).get("restored_from_cache"):
         "This is temporary frontend storage until backend database persistence is connected."
     )
 
-
 def initialise_synced_value(field_key, default):
     manual_key = f"{field_key}_manual"
     slider_key = f"{field_key}_slider"
@@ -50,14 +47,11 @@ def initialise_synced_value(field_key, default):
     if slider_key not in st.session_state:
         st.session_state[slider_key] = default
 
-
 def copy_manual_to_slider(field_key):
     st.session_state[f"{field_key}_slider"] = st.session_state[f"{field_key}_manual"]
 
-
 def copy_slider_to_manual(field_key):
     st.session_state[f"{field_key}_manual"] = st.session_state[f"{field_key}_slider"]
-
 
 def synced_manual_slider(label, field_key, minimum, maximum, default, slider_step, help_text):
     initialise_synced_value(field_key, default)
@@ -80,7 +74,7 @@ def synced_manual_slider(label, field_key, minimum, maximum, default, slider_ste
     with enter_col:
         st.write("")
         st.write("")
-        if st.button("Enter", key=f"{field_key}_enter", use_container_width=True):
+        if st.button("Enter", key=f"{field_key}_enter", width="stretch"):
             copy_manual_to_slider(field_key)
 
     with slider_col:
@@ -96,7 +90,6 @@ def synced_manual_slider(label, field_key, minimum, maximum, default, slider_ste
         )
 
     return st.session_state[slider_key]
-
 
 page_header(
     "DR",
@@ -198,7 +191,8 @@ if submitted:
     final_disaster_type = disaster_type
     final_location = location
 
-    results = calculate_disaster_metrics(
+    backend_results = run_backend_simulation(
+        disaster_type,
         severity,
         affected_population,
         available_ambulances,
@@ -216,8 +210,16 @@ if submitted:
         "available_ambulances": available_ambulances,
         "available_rescue_teams": available_rescue_teams,
         "available_food_units": available_food_units,
-        **results,
+
+        "input": {
+            "disaster_type": disaster_type,
+            "severity": severity,
+            "affected_population": affected_population,
+        },
+
+        "backend_results": backend_results,
     }
+
     simulation_results["domain_payload"] = to_domain_payload(simulation_results)
     save_simulation_results(simulation_results)
     st.session_state["simulation_results"] = simulation_results
@@ -256,20 +258,22 @@ if submitted:
                 available_ambulances,
                 available_rescue_teams,
                 available_food_units,
-                f"{results['estimated_casualties']:,}",
-                f"{results['response_time']} min",
-                results["resources_needed"],
-                f"{results['optimisation_score']}%",
-                results["recommended_ambulances"],
-                results["recommended_rescue_teams"],
-                results["recommended_food_units"],
-                f"{results['critical_risk']}%",
-                f"{results['high_risk']}%",
-                f"{results['medium_risk']}%",
-                f"{results['low_risk']}%",
+                f"{backend_results['estimated_casualties']:,}",
+                f"{backend_results['response_time']} min",
+                backend_results["resources_needed"],
+                f"{backend_results['optimisation_score']}%",
+                backend_results["recommended_ambulances"],
+                backend_results["recommended_rescue_teams"],
+                backend_results["recommended_food_units"],
+                f"{backend_results['critical_risk']}%",
+                f"{backend_results['high_risk']}%",
+                f"{backend_results['medium_risk']}%",
+                f"{backend_results['low_risk']}%",
             ],
         }
     )
 
+    results_table["Metric Value"] = results_table["Metric Value"].astype(str)
+
     st.subheader("Simulation Results")
-    st.dataframe(results_table, use_container_width=True, hide_index=True)
+    st.dataframe(results_table, width="stretch", hide_index=True)

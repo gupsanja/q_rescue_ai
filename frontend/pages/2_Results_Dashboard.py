@@ -5,7 +5,6 @@ from auth import require_login
 from data_sources import get_active_simulation_results
 from ui_theme import apply_global_style, page_header, render_table
 
-
 st.set_page_config(page_title="Results Dashboard", page_icon=":bar_chart:", layout="wide")
 apply_global_style()
 require_login()

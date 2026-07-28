@@ -2,11 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from auth import require_login
-from prediction import (
-    predict_outcome,
-    quantum_optimised_outcome,
-    simulation_severity_score,
-)
+from prediction import predict_outcome
 from ui_theme import apply_global_style, page_header, render_table
 
 st.set_page_config(
@@ -29,12 +25,16 @@ if "simulation_results" not in st.session_state:
     st.stop()
 
 simulation = st.session_state["simulation_results"]
+backend = simulation["backend_results"]
+classical = backend["classical_metrics"]
+qaoa = backend["qaoa_metrics"]
 prediction = predict_outcome(simulation)
-quantum = quantum_optimised_outcome(prediction)
+classical_metrics = backend["classical_metrics"]
+qaoa_metrics = backend["qaoa_metrics"]
 
 st.warning(
-    "AI-predicted and quantum-optimised values are transparent prototype "
-    "heuristics. They are not outputs from a trained AI model or quantum solver."
+    "AI-predicted values remain prototype heuristics. "
+    "Classical Greedy and QAOA Optimised values are generated from the backend allocation pipeline."
 )
 
 comparison = pd.DataFrame(
@@ -47,16 +47,32 @@ comparison = pd.DataFrame(
             "Rescue teams",
             "Food units",
         ],
-        "Unit": ["0–10", "people", "minutes", "units", "units", "units"],
-        "Better When": ["Lower", "Lower", "Lower", "Context", "Context", "Context"],
-        "Simulated": [
-            simulation_severity_score(simulation),
-            simulation["estimated_casualties"],
-            simulation["response_time"],
-            simulation["recommended_ambulances"],
-            simulation["recommended_rescue_teams"],
-            simulation["recommended_food_units"],
+        "Unit": [
+            "0–10",
+            "people",
+            "minutes",
+            "units",
+            "units",
+            "units",
         ],
+        "Better When": [
+            "Lower",
+            "Lower",
+            "Lower",
+            "Context",
+            "Context",
+            "Context",
+        ],
+
+        "Classical Greedy": [
+            simulation["severity"],
+            simulation["backend_results"]["estimated_casualties"],
+            classical_metrics["response_time"],
+            classical_metrics["ambulances"],
+            classical_metrics["rescue_teams"],
+            classical_metrics["food_units"],
+        ],
+
         "AI Predicted": [
             prediction["severity"],
             prediction["estimated_casualties"],
@@ -65,13 +81,14 @@ comparison = pd.DataFrame(
             prediction["rescue_teams"],
             prediction["food_units"],
         ],
-        "Quantum Optimised": [
-            quantum["severity"],
-            quantum["estimated_casualties"],
-            quantum["response_time"],
-            quantum["ambulances"],
-            quantum["rescue_teams"],
-            quantum["food_units"],
+
+        "QAOA Optimised": [
+            simulation["severity"],
+            simulation["backend_results"]["estimated_casualties"],
+            qaoa_metrics["response_time"],
+            qaoa_metrics["ambulances"],
+            qaoa_metrics["rescue_teams"],
+            qaoa_metrics["food_units"],
         ],
     }
 )
@@ -83,7 +100,11 @@ resource_comparison = comparison[comparison["Unit"] == "units"]
 resource_chart = px.bar(
     resource_comparison,
     x="Metric",
-    y=["Simulated", "AI Predicted", "Quantum Optimised"],
+    y=[
+        "Classical Greedy",
+        "AI Predicted",
+        "QAOA Optimised",
+    ],
     barmode="group",
     title="Resource-demand comparison",
     color_discrete_sequence=["#f2f2f2", "#ef232a", "#7d5fff"],
@@ -100,11 +121,15 @@ resource_chart.update_layout(
 
 response_comparison = pd.DataFrame(
     {
-        "Outcome": ["Simulated", "AI Predicted", "Quantum Optimised"],
+        "Outcome": [
+            "Classical Greedy",
+            "AI Predicted",
+            "QAOA Optimised",
+        ],
         "Response Time": [
-            simulation["response_time"],
+            classical["response_time"],
             prediction["response_time"],
-            quantum["response_time"],
+            qaoa["response_time"],
         ],
     }
 )

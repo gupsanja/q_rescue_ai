@@ -32,8 +32,7 @@ from q_rescue.simulation.scenarios import generate_scenario_by_category
 from q_rescue.simulation.sheffield import SHEFFIELD_HOSPITALS
 
 DEFAULT_EXACT_VARIABLE_LIMIT = 24
-DEFAULT_QAOA_VARIABLE_LIMIT = 24
-
+DEFAULT_QAOA_VARIABLE_LIMIT = 100
 
 @dataclass(frozen=True)
 class AllocationSettings:
@@ -53,7 +52,6 @@ class AllocationSettings:
     qaoa_attempts: int = 4
     seed: int = 42
 
-
 def build_allocation_output_from_request(request: dict[str, Any]) -> dict[str, Any]:
     """Run the allocation workflow from a UI request and return UI-ready JSON data."""
     scenario = scenario_from_request(request)
@@ -68,7 +66,6 @@ def build_allocation_output_from_request(request: dict[str, Any]) -> dict[str, A
         request=request,
         source="ui_request",
     )
-
 
 def build_allocation_output_from_benchmark(
     benchmark_dir: Path,
@@ -85,7 +82,6 @@ def build_allocation_output_from_benchmark(
         request={"benchmark_dir": str(benchmark_dir)},
         source="benchmark_export",
     )
-
 
 def build_allocation_output(
     scenario: DisasterScenario,
@@ -141,7 +137,6 @@ def build_allocation_output(
         qaoa_skip_reason=qaoa_skip_reason,
     )
 
-
 def scenario_from_request(request: dict[str, Any]) -> DisasterScenario:
     """Convert UI JSON into the internal ``DisasterScenario`` model.
 
@@ -194,7 +189,6 @@ def scenario_from_request(request: dict[str, Any]) -> DisasterScenario:
     }
     return generate_scenario_by_category(category, config=config, seed=seed)
 
-
 def settings_from_request(request: dict[str, Any]) -> AllocationSettings:
     """Extract optimizer settings from UI JSON, preserving demo-safe defaults."""
     data = _first_mapping(request, "optimisation", "optimization", "settings") or {}
@@ -218,14 +212,12 @@ def settings_from_request(request: dict[str, Any]) -> AllocationSettings:
         seed=seed,
     )
 
-
 def write_json_output(payload: dict[str, Any], path: Path) -> None:
     """Write a UI allocation payload to disk."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
         handle.write("\n")
-
 
 def _report_to_payload(
     report: ComparisonReport,
@@ -271,7 +263,6 @@ def _report_to_payload(
         },
     }
 
-
 def _scenario_to_dict(scenario: DisasterScenario) -> dict[str, Any]:
     return {
         "name": scenario.name,
@@ -314,7 +305,6 @@ def _scenario_to_dict(scenario: DisasterScenario) -> dict[str, Any]:
         ],
     }
 
-
 def _benchmark_to_dict(benchmark: SolverBenchmark) -> dict[str, Any]:
     return {
         "status": "ok",
@@ -334,7 +324,6 @@ def _benchmark_to_dict(benchmark: SolverBenchmark) -> dict[str, Any]:
         ],
     }
 
-
 def _optional_benchmark_to_dict(
     benchmark: SolverBenchmark | None,
     solver_name: str,
@@ -343,7 +332,6 @@ def _optional_benchmark_to_dict(
     if benchmark is not None:
         return _benchmark_to_dict(benchmark)
     return {"status": "skipped", "solver_name": solver_name, "reason": skip_reason}
-
 
 def _settings_to_dict(settings: AllocationSettings) -> dict[str, Any]:
     return {
@@ -361,7 +349,6 @@ def _settings_to_dict(settings: AllocationSettings) -> dict[str, Any]:
         "qaoa_attempts": settings.qaoa_attempts,
         "seed": settings.seed,
     }
-
 
 def _resolve_optional_solver(
     requested: bool | None,
@@ -384,7 +371,6 @@ def _resolve_optional_solver(
         )
     return True, None
 
-
 def _build_qaoa_solver(settings: AllocationSettings) -> QuboSolver:
     if settings.qaoa_attempts == 1:
         return QiskitQAOASolver(
@@ -401,14 +387,12 @@ def _build_qaoa_solver(settings: AllocationSettings) -> QuboSolver:
         attempts=settings.qaoa_attempts,
     )
 
-
 def _first_mapping(data: dict[str, Any], *keys: str) -> dict[str, Any] | None:
     for key in keys:
         value = data.get(key)
         if isinstance(value, dict):
             return value
     return None
-
 
 def _ambulance_from_dict(data: dict[str, Any]) -> Ambulance:
     return Ambulance(
@@ -417,7 +401,6 @@ def _ambulance_from_dict(data: dict[str, Any]) -> Ambulance:
         status=str(data.get("status", "Available")).capitalize(),
     )
 
-
 def _incident_from_dict(data: dict[str, Any], default_category: DisasterCategory) -> Incident:
     return Incident(
         id=str(data["id"]),
@@ -425,7 +408,6 @@ def _incident_from_dict(data: dict[str, Any], default_category: DisasterCategory
         severity=_parse_severity(data),
         category=_parse_category(data.get("category", default_category.value)),
     )
-
 
 def _hospital_from_dict(data: dict[str, Any]) -> Hospital:
     return Hospital(
@@ -436,7 +418,6 @@ def _hospital_from_dict(data: dict[str, Any]) -> Hospital:
         available_beds=int(data.get("available_beds", data.get("availableBeds", 0))),
     )
 
-
 def _location_from_dict(data: dict[str, Any]) -> Location:
     if "location" in data and isinstance(data["location"], dict):
         data = data["location"]
@@ -444,7 +425,6 @@ def _location_from_dict(data: dict[str, Any]) -> Location:
         x=float(data.get("lat", data.get("x"))),
         y=float(data.get("lon", data.get("lng", data.get("y")))),
     )
-
 
 def _parse_category(value: object) -> DisasterCategory:
     if isinstance(value, DisasterCategory):
@@ -454,7 +434,6 @@ def _parse_category(value: object) -> DisasterCategory:
         if text in {category.value, category.name.lower()}:
             return category
     raise ValueError(f"Unknown disaster category: {value!r}")
-
 
 def _parse_severity(data: dict[str, Any]) -> Severity:
     value = data.get("severity", data.get("severity_level", data.get("severityLevel")))
