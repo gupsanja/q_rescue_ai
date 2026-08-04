@@ -51,6 +51,7 @@ def export_scenario_json(scenario: DisasterScenario, path: Path) -> None:
                 "lon": round(i.location.y, 6),
                 "severity_level": i.severity.name,
                 "severity_weight": i.severity.absolute_weight(),
+                "hydro_features": getattr(i, "hydro_features", None),
             }
             for i in scenario.incidents
         ],
@@ -90,7 +91,7 @@ def export_hydro_enriched_scenario(
             "severity_weight": i.severity.absolute_weight(),
             "category": i.category.value,
             "hydro_features": getattr(i, "hydro_features", {}),
-            "ai_prediction": None
+            "ai_prediction": getattr(i, "ai_prediction", None)
         }
         data["incidents"].append(enriched)
 
