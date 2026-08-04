@@ -16,14 +16,13 @@ import json
 from pathlib import Path
 from typing import Any
 
+from q_rescue.simulation.constraints import OperationalConstraints
 from q_rescue.simulation.distance_matrix import (
     DistanceMatrix,
-    SeverityMapping,
     IncidentHospitalMatrix,
+    SeverityMapping,
 )
 from q_rescue.simulation.generator import DisasterScenario
-from q_rescue.simulation.constraints import OperationalConstraints
-
 
 # ---------------------------------------------------------------------------
 # JSON Exporters

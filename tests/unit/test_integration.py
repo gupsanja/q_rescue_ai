@@ -1,8 +1,8 @@
-from q_rescue.simulation.scenarios import generate_scenario_by_category
-from q_rescue.domain.models import DisasterCategory
-from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
 from q_rescue.classical.allocator import GreedyAllocator
+from q_rescue.domain.models import DisasterCategory
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
+from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
+from q_rescue.simulation.scenarios import generate_scenario_by_category
 
 
 def test_simulation_consumable_by_classical_allocator():

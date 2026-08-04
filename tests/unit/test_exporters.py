@@ -1,10 +1,10 @@
-import json
 import csv
+import json
 from pathlib import Path
 
-from q_rescue.simulation.scenarios import generate_generic_scenario
 from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
 from q_rescue.simulation.exporters import export_all
+from q_rescue.simulation.scenarios import generate_generic_scenario
 
 
 def test_export_all_generates_files(tmp_path: Path):

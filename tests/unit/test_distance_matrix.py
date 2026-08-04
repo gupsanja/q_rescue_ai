@@ -1,10 +1,11 @@
+from dataclasses import replace
+
 import numpy as np
 import pandas as pd
 
 from q_rescue.domain.models import Severity
 from q_rescue.simulation.distance_matrix import build_distance_matrix, build_severity_mapping
 from q_rescue.simulation.scenarios import generate_generic_scenario
-from dataclasses import replace
 
 
 def test_distance_matrix_dimensions():

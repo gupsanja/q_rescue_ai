@@ -73,6 +73,7 @@ def available_ambulance_count():
     return max(0, int(simulation.get("available_ambulances", 6)))
 
 
+@st.cache_data(show_spinner=False)
 def build_ambulance_routes(count):
     rows = []
 

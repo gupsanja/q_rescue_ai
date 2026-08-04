@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import IntEnum, Enum
-from math import hypot, radians, sin, cos, asin, sqrt
+from enum import Enum, IntEnum
+from math import asin, cos, hypot, radians, sin, sqrt
 
 
 class Severity(IntEnum):
@@ -55,11 +55,11 @@ class Location:
     x: float  # latitude (geographic) or km east from origin (grid)
     y: float  # longitude (geographic) or km north from origin (grid)
 
-    def distance_to(self, other: "Location") -> float:
+    def distance_to(self, other: Location) -> float:
         """Euclidean distance — accurate for grid/km coordinates."""
         return hypot(self.x - other.x, self.y - other.y)
 
-    def haversine_to(self, other: "Location") -> float:
+    def haversine_to(self, other: Location) -> float:
         """Great-circle (Haversine) distance in km for lat/lon coordinates."""
         lat1, lon1 = radians(self.x), radians(self.y)
         lat2, lon2 = radians(other.x), radians(other.y)

@@ -170,7 +170,7 @@ class _MinCostFlow:
         total_cost = 0.0
 
         for _ in range(required_flow):
-            distances, parents = self._shortest_path(source)
+            _distances, parents = self._shortest_path(source)
             if sink not in parents:
                 raise ValueError("Unable to route the requested assignment flow")
 

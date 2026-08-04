@@ -8,6 +8,7 @@ from streamlit_folium import st_folium
 
 from ambulance_data import available_ambulance_count, build_ambulance_routes
 from auth import require_login
+from data_sources import build_incident_locations, get_active_simulation_results
 from ui_theme import apply_global_style, page_header, render_table
 
 
@@ -21,22 +22,9 @@ require_login()
 
 page_header("A+", "Sheffield Hospital & Ambulance Tracker")
 
-incident_locations = pd.DataFrame(
-    {
-        "Incident Location": [
-            "Sheffield City Centre",
-            "Meadowhall",
-            "Hillsborough",
-            "Darnall",
-            "Attercliffe",
-            "Ecclesall Road",
-        ],
-        "Latitude": [53.3811, 53.4148, 53.4021, 53.3845, 53.3950, 53.3704],
-        "Longitude": [-1.4701, -1.4103, -1.5002, -1.4135, -1.4330, -1.4978],
-        "Incident Type": ["Accident", "Flood", "Fire", "Accident", "Chemical", "Medical"],
-        "Priority": ["Critical", "High", "High", "Medium", "Critical", "Medium"],
-    }
-)
+results = get_active_simulation_results()
+incident_locations = build_incident_locations(results)
+st.caption(f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv")
 
 base_hospitals = pd.DataFrame(
     {
@@ -148,9 +136,19 @@ def build_live_ambulance_data(base_data, tick, updated_time):
 
 control_col1, control_col2 = st.columns(2)
 with control_col1:
-    live_refresh = st.toggle("Live refresh", value=True)
+    live_refresh = st.toggle("Live refresh", value=False)
 with control_col2:
-    refresh_seconds = st.selectbox("Refresh every", [5, 10, 15, 30], index=1)
+    refresh_seconds = st.selectbox(
+        "Refresh every",
+        [15, 30, 60],
+        index=0,
+        disabled=not live_refresh,
+    )
+
+if live_refresh:
+    st.caption(f"Live map refreshes every {refresh_seconds} seconds.")
+else:
+    st.info("Live refresh is off for smoother viewing. Turn it on only when you need live updates.")
 
 
 @st.fragment(run_every=refresh_seconds if live_refresh else None)
@@ -212,30 +210,43 @@ def live_tracker():
             icon=folium.Icon(color=color, icon="road"),
         ).add_to(tracker_map)
 
-    st_folium(tracker_map, width=1200, height=480, key=f"tracker_{tick}")
+    st_folium(tracker_map, width=1000, height=430, key=f"tracker_{tick}")
 
     st.subheader("Ambulances")
+    ambulance_table = ambulances.rename(
+        columns={
+            "Speed mph": "Speed Metric (mph)",
+            "Updated": "Last Updated",
+        }
+    )
     render_table(
-        ambulances[
+        ambulance_table[
             [
                 "Ambulance ID",
                 "Current Area",
-                "Speed mph",
+                "Speed Metric (mph)",
                 "Availability",
                 "Assigned Hospital",
-                "Updated",
+                "Last Updated",
             ]
         ]
     )
 
     st.subheader("Hospitals")
+    hospital_table = hospitals.rename(
+        columns={
+            "Total Spaces": "Total Capacity Metric",
+            "Available Spaces": "Available Capacity Metric",
+            "Ambulances Available": "Ambulance Count Metric",
+        }
+    )
     render_table(
-        hospitals[
+        hospital_table[
             [
                 "Hospital",
-                "Total Spaces",
-                "Available Spaces",
-                "Ambulances Available",
+                "Total Capacity Metric",
+                "Available Capacity Metric",
+                "Ambulance Count Metric",
                 "Status",
             ]
         ]
