@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0",
+  "model_version": "xgb_severity_v1",
+  "classification": {
+    "xgboost": {
+      "accuracy": 0.9125,
+      "macro_f1": 0.9085323181781869,
+      "weighted_f1": 0.9128972750099911,
+      "macro_precision": 0.9122975626839194,
+      "macro_recall": 0.9053385416666667
+    },
+    "baseline_logreg": {
+      "accuracy": 0.8183333333333334,
+      "macro_f1": 0.825796467360299,
+      "weighted_f1": 0.8189894749541363,
+      "macro_precision": 0.8307576635666072,
+      "macro_recall": 0.8217447916666667
+    },
+    "xgboost_per_class": {
+      "Low": {
+        "precision": 0.9613733905579399,
+        "recall": 0.9333333333333333,
+        "f1-score": 0.9471458773784355,
+        "support": 480.0
+      },
+      "Moderate": {
+        "precision": 0.8660049627791563,
+        "recall": 0.9088541666666666,
+        "f1-score": 0.8869123252858958,
+        "support": 384.0
+      },
+      "High": {
+        "precision": 0.8870292887029289,
+        "recall": 0.8833333333333333,
+        "f1-score": 0.8851774530271399,
+        "support": 240.0
+      },
+      "Severe": {
+        "precision": 0.9347826086956522,
+        "recall": 0.8958333333333334,
+        "f1-score": 0.9148936170212766,
+        "support": 96.0
+      },
+      "accuracy": 0.9125,
+      "macro avg": {
+        "precision": 0.9122975626839194,
+        "recall": 0.9053385416666667,
+        "f1-score": 0.9085323181781869,
+        "support": 1200.0
+      },
+      "weighted avg": {
+        "precision": 0.9138594107487438,
+        "recall": 0.9125,
+        "f1-score": 0.9128972750099911,
+        "support": 1200.0
+      }
+    },
+    "baseline_per_class": {
+      "Low": {
+        "precision": 0.8726114649681529,
+        "recall": 0.85625,
+        "f1-score": 0.8643533123028391,
+        "support": 480.0
+      },
+      "Moderate": {
+        "precision": 0.7390243902439024,
+        "recall": 0.7890625,
+        "f1-score": 0.7632241813602015,
+        "support": 384.0
+      },
+      "High": {
+        "precision": 0.8177777777777778,
+        "recall": 0.7666666666666667,
+        "f1-score": 0.7913978494623656,
+        "support": 240.0
+      },
+      "Severe": {
+        "precision": 0.8936170212765957,
+        "recall": 0.875,
+        "f1-score": 0.8842105263157894,
+        "support": 96.0
+      },
+      "accuracy": 0.8183333333333334,
+      "macro avg": {
+        "precision": 0.8307576635666072,
+        "recall": 0.8217447916666667,
+        "f1-score": 0.825796467360299,
+        "support": 1200.0
+      },
+      "weighted avg": {
+        "precision": 0.8205773081229931,
+        "recall": 0.8183333333333334,
+        "f1-score": 0.8189894749541363,
+        "support": 1200.0
+      }
+    },
+    "class_order": [
+      "Low",
+      "Moderate",
+      "High",
+      "Severe"
+    ]
+  },
+  "regression": {
+    "xgboost": {
+      "mae": 155.1565151280869,
+      "rmse": 239.03469423271844,
+      "r2": 0.9783300929224739
+    },
+    "baseline_linreg": {
+      "mae": 325.55810203828344,
+      "rmse": 471.17237433646704,
+      "r2": 0.9158033511167033
+    },
+    "target_mean": 7819.014646730669,
+    "target_std": 1624.4765530645177,
+    "normalization": {
+      "min": 86.39395103616941,
+      "max": 21824.39317484464,
+      "computed_from": "training_set",
+      "n_train": 4800
+    }
+  },
+  "data": {
+    "n_rows": 6000,
+    "n_train": 4800,
+    "n_test": 1200,
+    "n_features": 14,
+    "features": [
+      "rainfall_24h_mm",
+      "rainfall_72h_mm",
+      "river_level_m",
+      "river_level_change_rate",
+      "soil_saturation_pct",
+      "upstream_dam_release_m3s",
+      "temperature_c",
+      "wind_speed_kmh",
+      "elevation_m",
+      "distance_to_river_km",
+      "drainage_capacity_index",
+      "urbanization_pct",
+      "population_density_per_km2",
+      "previous_flood_history"
+    ],
+    "class_distribution": {
+      "Low": 2400,
+      "Moderate": 1920,
+      "High": 1200,
+      "Severe": 480
+    }
+  }
+}

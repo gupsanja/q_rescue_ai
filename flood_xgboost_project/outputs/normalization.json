@@ -1,0 +1,8 @@
+{
+  "resource_demand_units": {
+    "min": 86.39395103616941,
+    "max": 21824.39317484464,
+    "computed_from": "training_set",
+    "n_train": 4800
+  }
+}
