@@ -59,6 +59,7 @@ class AmbulanceAllocationQuboBuilder:
         self.severity_weight = severity_weight
         self.constraint_penalty = constraint_penalty
         self.critical_priority = critical_priority
+        self._ai_patch: dict | None = None
 
     def build(
         self,
@@ -69,6 +70,10 @@ class AmbulanceAllocationQuboBuilder:
     ) -> QuboModel:
         """Construct the QUBO model from pre-computed simulation outputs.
 
+        If an AI patch has been applied via :meth:`apply_ai_patch`, the
+        severity mapping is overridden with the patch's ``severity_overrides``
+        and the distance cost is scaled per-incident by ``demand_overrides``.
+
         Args:
             ambulances:       Ambulance list from the scenario.
             incidents:        Incident list from the scenario.
@@ -78,6 +83,13 @@ class AmbulanceAllocationQuboBuilder:
         Returns:
             A populated ``QuboModel`` ready for the Qiskit solver.
         """
+        # Apply AI severity overrides if a patch is present
+        if self._ai_patch:
+            severity_mapping = dict(severity_mapping)
+            for iid, weight in self._ai_patch.get("severity_overrides", {}).items():
+                if iid in severity_mapping:
+                    severity_mapping[iid] = weight
+
         model = QuboModel()
 
         for ambulance in ambulances:
@@ -106,7 +118,48 @@ class AmbulanceAllocationQuboBuilder:
             variables = [(ambulance.id, incident.id) for ambulance in ambulances]
             self._add_exclusion_penalties(model, variables)
 
+        # Apply AI demand overrides: scale distance cost per incident
+        if self._ai_patch:
+            demand_overrides = self._ai_patch.get("demand_overrides", {})
+            for ambulance in ambulances:
+                for incident in incidents:
+                    if incident.id in demand_overrides:
+                        var = (ambulance.id, incident.id)
+                        demand = demand_overrides[incident.id]
+                        distance = distance_matrix.matrix[ambulance.id][incident.id]
+                        # Original cost component: d_w * dist
+                        # New cost component:      d_w * demand * dist
+                        # Delta = d_w * dist * (demand - 1)
+                        cost_delta = self.distance_weight * distance * (demand - 1.0)
+                        model.objective_linear[var] += cost_delta
+                        model.linear[var] += cost_delta
+
         return model
+
+    def apply_ai_patch(self, patch: dict | None) -> AmbulanceAllocationQuboBuilder:
+        """Override severity and demand weights with AI predictions.
+
+        Creates a new builder instance configured to use the AI-predicted
+        weights for the specific scenario referenced in the patch.
+
+        Args:
+            patch: A ``QuboAIPatch`` dict containing ``severity_overrides`` and
+                   ``demand_overrides``. If None, returns ``self`` (unpatched).
+
+        Returns:
+            A new ``AmbulanceAllocationQuboBuilder`` instance, or self.
+        """
+        if not patch:
+            return self
+
+        patched_builder = AmbulanceAllocationQuboBuilder(
+            distance_weight=self.distance_weight,
+            severity_weight=self.severity_weight,
+            constraint_penalty=self.constraint_penalty,
+            critical_priority=self.critical_priority,
+        )
+        patched_builder._ai_patch = patch
+        return patched_builder
 
     def _add_cardinality_penalty(
         self,

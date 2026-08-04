@@ -1,0 +1,130 @@
+{
+    "scenario_id": "sheffield_flood_response_(seed=42)",
+    "incidents": [
+        {
+            "id": "I1",
+            "lat": 53.363906,
+            "lon": -1.468675,
+            "severity_level": "MEDIUM",
+            "severity_weight": 50,
+            "category": "flood",
+            "hydro_features": {
+                "rainfall_24h_mm": 139.2,
+                "rainfall_72h_mm": 224.9,
+                "river_level_m": 0.7,
+                "river_level_change_rate": -0.1,
+                "soil_saturation_pct": 79.0,
+                "upstream_dam_release_m3s": 163.5,
+                "temperature_c": 1.6,
+                "wind_speed_kmh": 47.1,
+                "elevation_m": 244.7,
+                "distance_to_river_km": 0.08,
+                "drainage_capacity_index": 0.81,
+                "urbanization_pct": 72.8,
+                "population_density_per_km2": 1767.2,
+                "previous_flood_history": 0
+            },
+            "ai_prediction": null
+        },
+        {
+            "id": "I2",
+            "lat": 53.367033,
+            "lon": -1.461185,
+            "severity_level": "HIGH",
+            "severity_weight": 75,
+            "category": "flood",
+            "hydro_features": {
+                "rainfall_24h_mm": 139.2,
+                "rainfall_72h_mm": 269.4,
+                "river_level_m": 5.03,
+                "river_level_change_rate": 1.11,
+                "soil_saturation_pct": 83.8,
+                "upstream_dam_release_m3s": 160.9,
+                "temperature_c": 24.2,
+                "wind_speed_kmh": 30.3,
+                "elevation_m": 170.1,
+                "distance_to_river_km": 4.16,
+                "drainage_capacity_index": 0.62,
+                "urbanization_pct": 87.6,
+                "population_density_per_km2": 2929.0,
+                "previous_flood_history": 0
+            },
+            "ai_prediction": null
+        },
+        {
+            "id": "I3",
+            "lat": 53.392067,
+            "lon": -1.512272,
+            "severity_level": "MEDIUM",
+            "severity_weight": 50,
+            "category": "flood",
+            "hydro_features": {
+                "rainfall_24h_mm": 139.2,
+                "rainfall_72h_mm": 271.9,
+                "river_level_m": 3.35,
+                "river_level_change_rate": 0.41,
+                "soil_saturation_pct": 90.0,
+                "upstream_dam_release_m3s": 48.8,
+                "temperature_c": 5.7,
+                "wind_speed_kmh": 53.6,
+                "elevation_m": 213.5,
+                "distance_to_river_km": 3.43,
+                "drainage_capacity_index": 0.07,
+                "urbanization_pct": 67.1,
+                "population_density_per_km2": 2717.3,
+                "previous_flood_history": 0
+            },
+            "ai_prediction": null
+        },
+        {
+            "id": "I4",
+            "lat": 53.357441,
+            "lon": -1.435974,
+            "severity_level": "CRITICAL",
+            "severity_weight": 100,
+            "category": "flood",
+            "hydro_features": {
+                "rainfall_24h_mm": 139.2,
+                "rainfall_72h_mm": 231.6,
+                "river_level_m": 5.63,
+                "river_level_change_rate": 1.19,
+                "soil_saturation_pct": 86.6,
+                "upstream_dam_release_m3s": 68.7,
+                "temperature_c": -4.0,
+                "wind_speed_kmh": 25.2,
+                "elevation_m": 87.6,
+                "distance_to_river_km": 1.09,
+                "drainage_capacity_index": 0.94,
+                "urbanization_pct": 88.9,
+                "population_density_per_km2": 1641.9,
+                "previous_flood_history": 1
+            },
+            "ai_prediction": null
+        },
+        {
+            "id": "I5",
+            "lat": 53.403187,
+            "lon": -1.416977,
+            "severity_level": "MEDIUM",
+            "severity_weight": 50,
+            "category": "flood",
+            "hydro_features": {
+                "rainfall_24h_mm": 139.2,
+                "rainfall_72h_mm": 256.1,
+                "river_level_m": 4.54,
+                "river_level_change_rate": 0.99,
+                "soil_saturation_pct": 65.7,
+                "upstream_dam_release_m3s": 175.1,
+                "temperature_c": 5.9,
+                "wind_speed_kmh": 79.8,
+                "elevation_m": 50.1,
+                "distance_to_river_km": 2.49,
+                "drainage_capacity_index": 0.76,
+                "urbanization_pct": 87.5,
+                "population_density_per_km2": 848.9,
+                "previous_flood_history": 0
+            },
+            "ai_prediction": null
+        }
+    ]
+}
