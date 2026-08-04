@@ -8,6 +8,9 @@ Streamlit frontend and visualisation dashboard for the Q-Rescue AI group project
 - Disaster scenario input
 - Simulation results and resource recommendations
 - Classical and quantum optimisation comparison charts
+- Prototype AI prediction view for forecast severity, Sheffield risk areas, and
+  estimated resource demand
+- Three-way simulated vs AI-predicted vs quantum-optimised outcome comparison
 - Disaster map visualisation
 - Hospital and ambulance live tracking
 - Individual ambulance route tracking with optional live refresh
@@ -86,6 +89,14 @@ The current calculations and tracking updates use demonstration data so the fron
 - Recent simulation results are saved to a lightweight JSON file in the repository `cache/` directory. This is temporary demo persistence and should be replaced by backend API/database storage when the services layer is connected.
 
 Backend services can later replace the data returned by `utils.py` and `ambulance_data.py` without changing the page layout.
+
+## Prediction methodology
+
+`prediction.py` contains deterministic, documented heuristics for the assignment
+prototype. The prediction view clearly states that its results are not produced
+by a trained AI or clinical model. The quantum-optimised comparison is also an
+efficiency estimate rather than direct quantum-solver output. These functions
+are isolated so validated model and solver adapters can replace them later.
 
 ## Contribution
 

@@ -4,7 +4,6 @@ from datetime import datetime
 import folium
 import pandas as pd
 import streamlit as st
-from folium.plugins import AntPath
 from streamlit_folium import st_folium
 
 from ambulance_data import available_ambulance_count, build_ambulance_routes
@@ -35,11 +34,11 @@ selected_ambulance = st.selectbox("Select ambulance", routes["Ambulance ID"])
 
 control_col1, control_col2 = st.columns(2)
 with control_col1:
-    live_refresh = st.toggle("Live refresh", value=True)
+    live_refresh = st.toggle("Live refresh", value=False)
 with control_col2:
     refresh_seconds = st.selectbox(
         "Refresh every",
-        [3, 5, 10, 15],
+        [10, 15, 30, 60],
         index=1,
         disabled=not live_refresh,
     )
@@ -47,7 +46,7 @@ with control_col2:
 if live_refresh:
     st.caption(f"Live tracking refreshes every {refresh_seconds} seconds.")
 else:
-    st.info("Live refresh is off. Turn it on to resume automatic tracking.")
+    st.info("Live refresh is off for smoother viewing. Turn it on to resume automatic tracking.")
 
 
 def distance_km(start_lat, start_lon, end_lat, end_lon):
@@ -116,12 +115,11 @@ def track_selected_ambulance():
         [route["End Latitude"], route["End Longitude"]],
     ]
 
-    AntPath(
+    folium.PolyLine(
         route_points,
         color="#ef232a",
         weight=5,
-        delay=900,
-        dash_array=[10, 18],
+        opacity=0.9,
     ).add_to(route_map)
 
     folium.Marker(
@@ -151,8 +149,8 @@ def track_selected_ambulance():
 
     st_folium(
         route_map,
-        width=1200,
-        height=520,
+        width=1000,
+        height=460,
         key=f"individual_{selected_ambulance}_{tick}",
     )
 
@@ -163,10 +161,10 @@ def track_selected_ambulance():
             "Destination": [route["Destination"]],
             "Priority": [route["Patient Priority"]],
             "Status": [status],
-            "Speed": [f"{speed} mph"],
-            "Progress": [f"{progress}%"],
-            "ETA": [f"{eta_minutes} min"],
-            "Updated": [now.strftime("%H:%M:%S")],
+            "Speed Metric": [f"{speed} mph"],
+            "Progress Metric": [f"{progress}%"],
+            "ETA Metric": [f"{eta_minutes} min"],
+            "Last Updated": [now.strftime("%H:%M:%S")],
         }
     )
     render_table(trip_details)

@@ -8,6 +8,7 @@ ROOT_DIR = Path(__file__).resolve().parent
 BACKGROUND_IMAGE = ROOT_DIR / "assets" / "app_background.jpg"
 
 
+@st.cache_data(show_spinner=False)
 def _background_data_uri():
     if not BACKGROUND_IMAGE.exists():
         return ""
@@ -40,7 +41,7 @@ def apply_global_style():
                 background: {background_css};
                 background-size: cover;
                 background-position: center;
-                background-attachment: fixed;
+                background-attachment: scroll;
                 color: #ffffff;
             }}
 
@@ -57,7 +58,7 @@ def apply_global_style():
 
             [data-testid="stSidebar"] {{
                 background: rgba(18, 16, 22, 0.96);
-                backdrop-filter: blur(14px);
+                backdrop-filter: none;
                 border-right: 1px solid rgba(239, 35, 42, 0.25);
             }}
 
@@ -84,14 +85,14 @@ def apply_global_style():
                 background: rgba(34, 31, 39, 0.94);
                 border: 1px solid rgba(255, 255, 255, 0.10);
                 border-radius: 6px;
-                box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
             }}
 
             div[data-testid="stDataFrame"],
             div[data-testid="stPlotlyChart"],
             iframe {{
                 border-radius: 6px;
-                box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
             }}
 
             [data-testid="stTable"] table {{
@@ -170,7 +171,7 @@ def apply_global_style():
                 background: rgba(18, 16, 22, 0.96);
                 border-bottom: 5px solid #ef232a;
                 border-radius: 6px;
-                box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
             }}
 
             h1, h2, h3,

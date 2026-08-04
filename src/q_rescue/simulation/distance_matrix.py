@@ -12,8 +12,8 @@ Schema output:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 from q_rescue.domain.models import Location, Severity
 from q_rescue.simulation.generator import DisasterScenario
@@ -49,7 +49,7 @@ class DistanceMatrix:
 
     def to_dataframe(self):  # -> pd.DataFrame
         """Return the distance matrix as a pandas DataFrame (rows=ambulances, cols=incidents)."""
-        import pandas as pd  # noqa: PLC0415
+        import pandas as pd
 
         return pd.DataFrame(self.matrix).T.reindex(
             index=self.ambulance_ids, columns=self.incident_ids
@@ -57,7 +57,7 @@ class DistanceMatrix:
 
     def to_numpy(self):
         """Return distance values as a 2-D NumPy array (rows=ambulances, cols=incidents)."""
-        import numpy as np  # noqa: PLC0415
+        import numpy as np
 
         return np.array(
             [
@@ -88,7 +88,7 @@ class IncidentHospitalMatrix:
 
     def to_dataframe(self):
         """Return the distance matrix as a pandas DataFrame (rows=incidents, cols=hospitals)."""
-        import pandas as pd  # noqa: PLC0415
+        import pandas as pd
 
         return pd.DataFrame(self.matrix).T.reindex(
             index=self.incident_ids, columns=self.hospital_ids
@@ -96,7 +96,7 @@ class IncidentHospitalMatrix:
 
     def to_numpy(self):
         """Return distance values as a 2-D NumPy array (rows=incidents, cols=hospitals)."""
-        import numpy as np  # noqa: PLC0415
+        import numpy as np
 
         return np.array(
             [[self.matrix[i_id][h_id] for h_id in self.hospital_ids] for i_id in self.incident_ids],

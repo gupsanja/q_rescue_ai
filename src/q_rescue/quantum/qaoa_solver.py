@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from itertools import product
 from collections.abc import Callable
+from itertools import product
 from typing import Protocol
 
 import numpy as np

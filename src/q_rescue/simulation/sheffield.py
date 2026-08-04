@@ -12,12 +12,8 @@ from __future__ import annotations
 
 import math
 from random import Random
-from typing import TYPE_CHECKING
 
 from q_rescue.domain.models import Hospital, Location
-
-if TYPE_CHECKING:
-    pass
 
 # ---------------------------------------------------------------------------
 # Sheffield geographic bounding box (WGS-84)

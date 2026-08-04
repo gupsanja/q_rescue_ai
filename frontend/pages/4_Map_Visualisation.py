@@ -1,9 +1,9 @@
 import folium
-import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
 from auth import require_login
+from data_sources import build_incident_locations, get_active_simulation_results
 from ui_theme import apply_global_style, page_header, render_table
 
 
@@ -16,60 +16,14 @@ page_header(
     "Sheffield Disaster Map Visualisation",
 )
 
-locations = pd.DataFrame(
-    {
-        "Name": [
-            "Sheffield City Centre",
-            "Northern General Hospital",
-            "Royal Hallamshire Hospital",
-            "Meadowhall",
-            "Hillsborough",
-            "Darnall",
-            "Ecclesall Road",
-            "Attercliffe",
-        ],
-        "Type": [
-            "Disaster Zone",
-            "Hospital",
-            "Hospital",
-            "Resource Point",
-            "Rescue Centre",
-            "High Risk Area",
-            "Rescue Centre",
-            "High Risk Area",
-        ],
-        "Latitude": [
-            53.3811,
-            53.4109,
-            53.3785,
-            53.4148,
-            53.4021,
-            53.3845,
-            53.3704,
-            53.3950,
-        ],
-        "Longitude": [
-            -1.4701,
-            -1.4587,
-            -1.4939,
-            -1.4103,
-            -1.5002,
-            -1.4135,
-            -1.4978,
-            -1.4330,
-        ],
-        "Risk Level": [
-            "Critical",
-            "Low",
-            "Low",
-            "Medium",
-            "High",
-            "High",
-            "Medium",
-            "High",
-        ],
+results = get_active_simulation_results()
+locations = build_incident_locations(results).rename(
+    columns={
+        "Incident Location": "Name",
+        "Incident Type": "Type",
     }
 )
+st.caption(f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv")
 
 selected_location = st.selectbox("Select Sheffield location", locations["Name"])
 selected_row = locations[locations["Name"] == selected_location].iloc[0]
@@ -90,11 +44,10 @@ risk_colors = {
 }
 
 type_icons = {
-    "Disaster Zone": "exclamation-triangle",
-    "Hospital": "plus-sign",
-    "Resource Point": "info-sign",
-    "Rescue Centre": "home",
-    "High Risk Area": "warning-sign",
+    "City-wide emergency": "exclamation-triangle",
+    "Flood": "tint",
+    "Industrial accident": "warning-sign",
+    "Generic incident": "info-sign",
 }
 
 for _, row in locations.iterrows():
@@ -133,4 +86,4 @@ folium.Circle(
 st_folium(m, width=1100, height=560)
 
 st.subheader("Sheffield Location Risk Data")
-render_table(locations[["Name", "Type", "Risk Level"]])
+render_table(locations[["Name", "Type", "Risk Level", "Affected Population"]])

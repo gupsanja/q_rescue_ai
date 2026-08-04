@@ -31,7 +31,6 @@ from q_rescue.simulation.generator import DisasterScenario
 from q_rescue.simulation.scenarios import generate_scenario_by_category
 from q_rescue.simulation.sheffield import SHEFFIELD_HOSPITALS
 
-
 DEFAULT_EXACT_VARIABLE_LIMIT = 24
 DEFAULT_QAOA_VARIABLE_LIMIT = 24
 
@@ -378,8 +377,10 @@ def _resolve_optional_solver(
     if binary_variables > variable_limit:
         return (
             False,
-            f"{solver_label} skipped because {binary_variables} binary variables exceed "
-            f"the configured limit of {variable_limit}",
+            (
+                f"{solver_label} skipped because {binary_variables} binary variables exceed "
+                f"the configured limit of {variable_limit}"
+            ),
         )
     return True, None
 
