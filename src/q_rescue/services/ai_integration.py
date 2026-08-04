@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 from q_rescue.ai.predictor import build_dashboard_payload, build_qubo_patch, predict_scenario
-from q_rescue.simulation.exporters import export_flood_observations_csv, export_hydro_enriched_scenario
+from q_rescue.simulation.exporters import export_hydro_enriched_scenario
 from q_rescue.simulation.generator import DisasterScenario
 
 def run_ai_prediction_pipeline(

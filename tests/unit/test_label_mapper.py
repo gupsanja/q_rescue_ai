@@ -33,7 +33,7 @@ def test_canonical_severity_encoder():
     labels = ["High", "Low", "Severe", "Moderate"]
     encoded = encoder.transform(labels)
     
-    expected = [AI_LABEL_TO_INT[l] for l in labels]
+    expected = [AI_LABEL_TO_INT[lbl] for lbl in labels]
     assert list(encoded) == expected
     
     # Test inverse transform

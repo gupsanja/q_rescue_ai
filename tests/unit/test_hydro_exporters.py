@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-import pytest
 
 from q_rescue.simulation.exporters import (
     export_flood_observations_csv,

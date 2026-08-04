@@ -1,5 +1,3 @@
-import pytest
-from unittest.mock import patch, MagicMock
 
 from q_rescue.ai.predictor import build_dashboard_payload, build_qubo_patch
 
