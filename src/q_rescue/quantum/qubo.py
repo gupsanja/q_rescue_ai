@@ -93,7 +93,6 @@ class AmbulanceAllocationQuboBuilder:
                     severity_mapping[iid] = weight
 
         model = QuboModel()
-        demand_overrides = self._ai_patch.get("demand_overrides", {}) if self._ai_patch else {}
 
         for ambulance in ambulances:
             for incident in incidents:
@@ -102,11 +101,8 @@ class AmbulanceAllocationQuboBuilder:
                 severity = severity_mapping[incident.id]
                 # Normalise severity to 0-1 range (schema: 25/50/75/100 -> 0.25...1.0)
                 severity_normalised = severity / 100.0
-                demand_bonus = self.demand_weight * float(demand_overrides.get(incident.id, 0.0))
                 assignment_cost = (
-                    self.distance_weight * distance
-                    - self.severity_weight * severity_normalised
-                    - demand_bonus
+                    self.distance_weight * distance - self.severity_weight * severity_normalised
                 )
                 model.objective_linear[variable] = assignment_cost
                 model.linear[variable] = assignment_cost
@@ -123,6 +119,18 @@ class AmbulanceAllocationQuboBuilder:
         for incident in incidents:
             variables = [(ambulance.id, incident.id) for ambulance in ambulances]
             self._add_exclusion_penalties(model, variables)
+
+        # Apply AI demand overrides as an urgency bonus per incident.
+        if self._ai_patch:
+            demand_overrides = self._ai_patch.get("demand_overrides", {})
+            for ambulance in ambulances:
+                for incident in incidents:
+                    if incident.id in demand_overrides:
+                        var = (ambulance.id, incident.id)
+                        demand = float(demand_overrides[incident.id])
+                        cost_delta = -self.demand_weight * demand
+                        model.objective_linear[var] += cost_delta
+                        model.linear[var] += cost_delta
 
         return model
 
