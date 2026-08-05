@@ -63,7 +63,7 @@ Core inference functions.
 - `build_dashboard_payload(predictions, scenario)`: Assembles aggregated severity counts, dominant severity, and per-incident metrics for M3.
 
 ### `q_rescue.quantum.qubo`
-- `AmbulanceAllocationQuboBuilder.apply_ai_patch(patch)`: Stores AI patch state on the builder and overrides severity weights & scales distance penalties dynamically during `build()`.
+- `AmbulanceAllocationQuboBuilder.apply_ai_patch(patch)`: Stores AI patch state on the builder, overrides severity weights, and applies predicted demand as a separate urgency bonus during `build()`.
 
 ### `q_rescue.services.ai_integration`
 - `run_ai_prediction_pipeline(scenario, hydro_params, model_dir, output_dir)`: End-to-end function that extracts observations, executes inference, constructs patch/dashboard artifacts, attaches predictions to incidents, and serializes output files.
@@ -127,7 +127,11 @@ predictions, qubo_patch, dashboard_payload = run_ai_prediction_pipeline(
 )
 
 # 3. Apply Patch to QUBO Builder
-builder = AmbulanceAllocationQuboBuilder(distance_weight=1.0, severity_weight=8.0)
+builder = AmbulanceAllocationQuboBuilder(
+    distance_weight=1.0,
+    severity_weight=8.0,
+    demand_weight=8.0,
+)
 patched_builder = builder.apply_ai_patch(qubo_patch)
 
 # 4. Build Model with AI Overrides
