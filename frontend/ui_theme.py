@@ -3,7 +3,6 @@ from pathlib import Path
 
 import streamlit as st
 
-
 ROOT_DIR = Path(__file__).resolve().parent
 BACKGROUND_IMAGE = ROOT_DIR / "assets" / "app_background.jpg"
 

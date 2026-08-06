@@ -1,5 +1,6 @@
 from q_rescue.domain.models import Ambulance, Incident, Location, Severity
 from q_rescue.quantum.comparison import compare_solvers
+from q_rescue.quantum.optimizer import QuantumAllocator
 from q_rescue.quantum.qaoa_solver import ExactQuboSolver
 from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
 from q_rescue.simulation.distance_matrix import DistanceMatrix
@@ -146,6 +147,67 @@ def test_ai_patched_qubo_solves_to_feasible_priority_assignment():
     assert len(selected_ambulances) == len(set(selected_ambulances))
     assert len(selected_incidents) == len(set(selected_incidents))
     assert "I_AI_URGENT" in selected_incidents
+
+
+def test_quantum_allocator_consumes_ai_patch_contract():
+    ambulances = [
+        Ambulance("A1", Location(0, 0)),
+        Ambulance("A2", Location(6, 0)),
+    ]
+    incidents = [
+        Incident("I_NEAR_LOW", Location(1, 0), Severity.LOW),
+        Incident("I_AI_URGENT", Location(5, 0), Severity.LOW),
+        Incident("I_FAR_LOW", Location(20, 0), Severity.LOW),
+    ]
+    distance_matrix = DistanceMatrix(
+        matrix={
+            "A1": {"I_NEAR_LOW": 1.0, "I_AI_URGENT": 5.0, "I_FAR_LOW": 20.0},
+            "A2": {"I_NEAR_LOW": 5.0, "I_AI_URGENT": 1.0, "I_FAR_LOW": 14.0},
+        },
+        ambulance_ids=["A1", "A2"],
+        incident_ids=["I_NEAR_LOW", "I_AI_URGENT", "I_FAR_LOW"],
+    )
+    severity_mapping = {
+        "I_NEAR_LOW": 25,
+        "I_AI_URGENT": 25,
+        "I_FAR_LOW": 25,
+    }
+    qubo_patch = {
+        "scenario_id": "member1_allocator_contract",
+        "model_version": "mock_ai_contract_v1",
+        "severity_overrides": {
+            "I_NEAR_LOW": 25,
+            "I_AI_URGENT": 100,
+            "I_FAR_LOW": 25,
+        },
+        "demand_overrides": {
+            "I_NEAR_LOW": 0.1,
+            "I_AI_URGENT": 0.95,
+            "I_FAR_LOW": 0.1,
+        },
+    }
+    patched_builder = AmbulanceAllocationQuboBuilder(
+        distance_weight=1.0,
+        severity_weight=8.0,
+        demand_weight=8.0,
+        critical_priority=True,
+    ).apply_ai_patch(qubo_patch)
+    allocator = QuantumAllocator(builder=patched_builder, solver=ExactQuboSolver())
+
+    result = allocator.solve(
+        ambulances=ambulances,
+        incidents=incidents,
+        distance_matrix=distance_matrix,
+        severity_mapping=severity_mapping,
+    )
+
+    assigned_incidents = {assignment.incident_id for assignment in result.assignments}
+
+    assert result.feasible
+    assert result.solver_name == "exact-enumeration"
+    assert result.metadata["binary_variables"] == 6
+    assert len(result.assignments) == 2
+    assert "I_AI_URGENT" in assigned_incidents
 
 
 def test_ai_patched_builder_runs_end_to_end_on_simulated_scenario():

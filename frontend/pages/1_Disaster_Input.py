@@ -1,9 +1,8 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-
 
 # Makes utils.py import correctly when this page runs inside Streamlit
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -23,7 +22,6 @@ from utils import (
     load_latest_simulation_results,
     save_simulation_results,
 )
-
 
 st.set_page_config(page_title="Disaster Input", page_icon=":memo:", layout="wide")
 apply_global_style()

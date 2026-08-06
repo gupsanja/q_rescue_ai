@@ -1,8 +1,6 @@
 import pandas as pd
 import streamlit as st
-
 from adapters import ambulance_from_route
-
 
 ROUTE_TEMPLATES = [
     {

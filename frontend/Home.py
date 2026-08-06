@@ -1,5 +1,4 @@
 import streamlit as st
-
 from auth import (
     is_logged_in,
     log_in,
@@ -7,7 +6,6 @@ from auth import (
     validate_login,
 )
 from ui_theme import apply_global_style
-
 
 st.set_page_config(
     page_title="Q-Rescue AI",

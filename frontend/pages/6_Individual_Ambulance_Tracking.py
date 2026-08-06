@@ -4,12 +4,10 @@ from datetime import datetime
 import folium
 import pandas as pd
 import streamlit as st
-from streamlit_folium import st_folium
-
 from ambulance_data import available_ambulance_count, build_ambulance_routes
 from auth import require_login
+from streamlit_folium import st_folium
 from ui_theme import apply_global_style, page_header, render_table
-
 
 st.set_page_config(
     page_title="Individual Ambulance Tracking",
@@ -73,12 +71,13 @@ def track_selected_ambulance():
     progress = ((tick * 4) + route_index * 13) % 101
     progress_ratio = progress / 100
 
-    current_latitude = route["Start Latitude"] + (
-        route["End Latitude"] - route["Start Latitude"]
-    ) * progress_ratio
-    current_longitude = route["Start Longitude"] + (
-        route["End Longitude"] - route["Start Longitude"]
-    ) * progress_ratio
+    current_latitude = (
+        route["Start Latitude"] + (route["End Latitude"] - route["Start Latitude"]) * progress_ratio
+    )
+    current_longitude = (
+        route["Start Longitude"]
+        + (route["End Longitude"] - route["Start Longitude"]) * progress_ratio
+    )
 
     speed = 0 if progress == 100 else int(route["Base Speed"] + ((tick + route_index) % 9) - 4)
     total_distance = distance_km(
@@ -138,11 +137,7 @@ def track_selected_ambulance():
 
     folium.Marker(
         [current_latitude, current_longitude],
-        popup=(
-            f"{route['Ambulance ID']}<br>"
-            f"Speed: {speed} mph<br>"
-            f"ETA: {eta_minutes} min"
-        ),
+        popup=(f"{route['Ambulance ID']}<br>Speed: {speed} mph<br>ETA: {eta_minutes} min"),
         tooltip=route["Ambulance ID"],
         icon=folium.Icon(color="blue", icon="road"),
     ).add_to(route_map)

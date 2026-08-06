@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 import random
+from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).parent.parent
 
