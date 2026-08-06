@@ -78,10 +78,7 @@ def export_hydro_enriched_scenario(
     hydro_params: dict | None = None,
 ) -> None:
     """Export HydroEnrichedIncident list as JSON alongside existing scenario JSON."""
-    data = {
-        "scenario_id": scenario.name.lower().replace(" ", "_"),
-        "incidents": []
-    }
+    data = {"scenario_id": scenario.name.lower().replace(" ", "_"), "incidents": []}
     for i in scenario.incidents:
         enriched = {
             "id": i.id,
@@ -91,7 +88,7 @@ def export_hydro_enriched_scenario(
             "severity_weight": i.severity.absolute_weight(),
             "category": i.category.value,
             "hydro_features": getattr(i, "hydro_features", {}),
-            "ai_prediction": getattr(i, "ai_prediction", None)
+            "ai_prediction": getattr(i, "ai_prediction", None),
         }
         data["incidents"].append(enriched)
 
@@ -198,18 +195,29 @@ def export_flood_observations_csv(
 ) -> None:
     """Export FloodObservation rows as CSV (14 feature columns, no targets)."""
     headers = [
-        "observation_id", "incident_id", "scenario_id", "timestamp_utc",
-        "rainfall_24h_mm", "rainfall_72h_mm", "river_level_m",
-        "river_level_change_rate", "soil_saturation_pct",
-        "upstream_dam_release_m3s", "temperature_c", "wind_speed_kmh",
-        "elevation_m", "distance_to_river_km", "drainage_capacity_index",
-        "urbanization_pct", "population_density_per_km2",
-        "previous_flood_history"
+        "observation_id",
+        "incident_id",
+        "scenario_id",
+        "timestamp_utc",
+        "rainfall_24h_mm",
+        "rainfall_72h_mm",
+        "river_level_m",
+        "river_level_change_rate",
+        "soil_saturation_pct",
+        "upstream_dam_release_m3s",
+        "temperature_c",
+        "wind_speed_kmh",
+        "elevation_m",
+        "distance_to_river_km",
+        "drainage_capacity_index",
+        "urbanization_pct",
+        "population_density_per_km2",
+        "previous_flood_history",
     ]
-    
+
     scenario_id = scenario.name.lower().replace(" ", "_")
     timestamp_utc = "2026-03-14T08:30:00Z"
-    
+
     rows = []
     for i in scenario.incidents:
         hf = getattr(i, "hydro_features", {})
@@ -231,12 +239,13 @@ def export_flood_observations_csv(
             hf.get("drainage_capacity_index", 0.0),
             hf.get("urbanization_pct", 0.0),
             hf.get("population_density_per_km2", 0.0),
-            hf.get("previous_flood_history", 0)
+            hf.get("previous_flood_history", 0),
         ]
         rows.append(row)
-        
+
     path.parent.mkdir(parents=True, exist_ok=True)
     _write_csv(path, headers=headers, rows=rows)
+
 
 def export_distance_matrix_csv(distance_matrix: DistanceMatrix, path: Path) -> None:
     """Export the distance matrix to CSV (rows = ambulances, cols = incidents)."""

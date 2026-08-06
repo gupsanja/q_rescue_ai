@@ -62,7 +62,7 @@ jobs:
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
       - name: Install dependencies
-        run: pip install -e ".[quantum,dev]"
+        run: pip install -e ".[quantum,ai,dev]"
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
@@ -91,7 +91,7 @@ jobs:
             ${{ runner.os }}-pip-3.12-
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[quantum,ai,geo,dev]"
 
       - name: Run M2 simulation runner
         run: python "Disaster_simulation_and optimisation_Model/M2_src/main.py"

@@ -15,6 +15,7 @@ from q_rescue.ai.predictor import build_dashboard_payload, build_qubo_patch, pre
 from q_rescue.simulation.exporters import export_hydro_enriched_scenario
 from q_rescue.simulation.generator import DisasterScenario
 
+
 def run_ai_prediction_pipeline(
     scenario: DisasterScenario,
     hydro_params: dict,
@@ -39,7 +40,7 @@ def run_ai_prediction_pipeline(
     """
     scenario_id = scenario.name.lower().replace(" ", "_")
     timestamp_utc = "2026-03-14T08:30:00Z"
-    
+
     # 1. Prepare observations dicts (bypassing CSV writing for in-memory flow)
     observations = []
     for i in scenario.incidents:
@@ -49,7 +50,7 @@ def run_ai_prediction_pipeline(
             "incident_id": i.id,
             "scenario_id": scenario_id,
             "timestamp_utc": timestamp_utc,
-            **hf
+            **hf,
         }
         observations.append(obs)
 
@@ -73,16 +74,18 @@ def run_ai_prediction_pipeline(
     # 4. Save to output dir if requested
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         with (output_dir / "ai_predictions.json").open("w", encoding="utf-8") as f:
             json.dump(predictions, f, indent=2)
-            
+
         with (output_dir / "qubo_ai_patch.json").open("w", encoding="utf-8") as f:
             json.dump(qubo_patch, f, indent=2)
-            
+
         with (output_dir / "dashboard_prediction_payload.json").open("w", encoding="utf-8") as f:
             json.dump(dashboard_payload, f, indent=2)
-            
-        export_hydro_enriched_scenario(scenario, output_dir / "hydro_enriched_scenario.json", hydro_params)
+
+        export_hydro_enriched_scenario(
+            scenario, output_dir / "hydro_enriched_scenario.json", hydro_params
+        )
 
     return predictions, qubo_patch, dashboard_payload

@@ -172,7 +172,7 @@ def _print_benchmark(benchmark: SolverBenchmark) -> None:
         f"{benchmark.runtime_seconds:>12.6f} {metrics['average_distance_km']:>14.3f} "
         f"{metrics['coverage_percent']:>9.1f}% "
         f"{metrics['critical_coverage_percent']:>9.1f}% "
-        f"{str(benchmark.feasible):>10}"
+        f"{benchmark.feasible!s:>10}"
     )
 
 
