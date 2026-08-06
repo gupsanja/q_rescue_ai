@@ -17,8 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
@@ -76,7 +75,7 @@ PROFILES = {
 
 observations = []
 for inc in INCIDENTS:
-    feats = dict(PROFILES[inc["profile"]])
+    feats = dict(PROFILES[str(inc["profile"])])
     observations.append(
         {
             "observation_id": f"OBS_{SCENARIO_ID}_{inc['id']}",
@@ -92,7 +91,7 @@ for p in predictions:
     validate_ai_prediction(p)
 
 qubo_patch = build_qubo_patch(predictions, SCENARIO_ID)
-validate_qubo_patch(qubo_patch, [inc["id"] for inc in INCIDENTS])
+validate_qubo_patch(qubo_patch, [str(inc["id"]) for inc in INCIDENTS])
 
 scenario = {"scenario_id": SCENARIO_ID, "incidents": INCIDENTS}
 dashboard_payload = build_dashboard_payload(predictions, scenario)
