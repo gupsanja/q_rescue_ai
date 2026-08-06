@@ -4,7 +4,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-
 CACHE_DIR = Path(__file__).resolve().parents[1] / "cache"
 LATEST_SIMULATION_FILE = CACHE_DIR / "latest_frontend_simulation.json"
 

@@ -18,11 +18,14 @@ import json
 import sys
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from q_rescue.ai.predictor import predict_scenario, build_qubo_patch, build_dashboard_payload  # noqa: E402
+from q_rescue.ai.predictor import (  # noqa: E402
+    build_dashboard_payload,
+    build_qubo_patch,
+    predict_scenario,
+)
 from q_rescue.ai.validation import validate_ai_prediction, validate_qubo_patch  # noqa: E402
 
 MODEL_DIR = REPO_ROOT / "flood_xgboost_project" / "outputs"

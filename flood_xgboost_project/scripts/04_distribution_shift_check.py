@@ -28,7 +28,10 @@ from scipy import stats
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
-from q_rescue.ai.validation import EXPECTED_FEATURES, validate_flood_observation_columns  # noqa: E402
+from q_rescue.ai.validation import (  # noqa: E402
+    EXPECTED_FEATURES,
+    validate_flood_observation_columns,
+)
 
 TRAIN_DATA_PATH = REPO_ROOT / "flood_xgboost_project" / "data" / "flood_dataset.csv"
 

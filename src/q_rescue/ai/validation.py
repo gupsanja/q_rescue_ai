@@ -43,7 +43,7 @@ _VALID_INTS: frozenset[int] = frozenset({0, 1, 2, 3})
 # ---------------------------------------------------------------------------
 
 
-def validate_flood_observation_columns(columns: "list[str] | object") -> None:
+def validate_flood_observation_columns(columns: list[str] | object) -> None:
     """Assert that *columns* matches :data:`EXPECTED_FEATURES` exactly.
 
     Args:

@@ -22,7 +22,7 @@ Usage::
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -32,8 +32,8 @@ import pandas as pd
 
 from q_rescue.ai.label_mapper import (
     AI_LABEL_TO_INT,
-    AI_LABEL_TO_WEIGHT,
     AI_LABEL_TO_SEVERITY_ENUM,
+    AI_LABEL_TO_WEIGHT,
     SEVERITY_ORDER,
     CanonicalSeverityEncoder,
 )
@@ -218,7 +218,7 @@ def build_qubo_patch(
 
 def build_dashboard_payload(
     predictions: list[dict],
-    scenario: "Any",
+    scenario: Any,
 ) -> dict:
     """Assemble a dashboard-ready prediction payload for M3.
 
@@ -254,7 +254,7 @@ def build_dashboard_payload(
         }
 
     model_version = predictions[0]["model_version"] if predictions else _MODEL_VERSION
-    generated_at = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    generated_at = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     payload_predictions: list[dict] = []
     total_demand: float = 0.0

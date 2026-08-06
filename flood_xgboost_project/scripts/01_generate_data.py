@@ -14,9 +14,10 @@ correlated (as they are in reality) but not identical:
                              (personnel, boats, shelter capacity, pumps)
 """
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 
 RNG = np.random.default_rng(42)
 N = 6000

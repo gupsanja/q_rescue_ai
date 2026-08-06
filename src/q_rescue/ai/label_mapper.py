@@ -132,11 +132,11 @@ class CanonicalSeverityEncoder:
     # sklearn-compatible interface
     # ------------------------------------------------------------------
 
-    def fit(self, y: "list[str] | np.ndarray") -> "CanonicalSeverityEncoder":  # noqa: F821
+    def fit(self, y: list[str] | np.ndarray) -> CanonicalSeverityEncoder:
         """No-op fit; the mapping is fixed by the schema, not the data."""
         return self
 
-    def transform(self, y: "list[str] | np.ndarray | object") -> np.ndarray:
+    def transform(self, y: list[str] | np.ndarray | object) -> np.ndarray:
         """Encode label strings → canonical ints (0=Low … 3=Severe).
 
         Args:
@@ -147,7 +147,7 @@ class CanonicalSeverityEncoder:
         """
         return np.array([AI_LABEL_TO_INT[str(label)] for label in y], dtype=np.int64)
 
-    def inverse_transform(self, y: "list[int] | np.ndarray") -> list[str]:
+    def inverse_transform(self, y: list[int] | np.ndarray) -> list[str]:
         """Decode canonical ints → label strings.
 
         Args:
@@ -158,6 +158,6 @@ class CanonicalSeverityEncoder:
         """
         return [INT_TO_AI_LABEL[int(i)] for i in y]
 
-    def fit_transform(self, y: "list[str] | np.ndarray | object") -> np.ndarray:
+    def fit_transform(self, y: list[str] | np.ndarray | object) -> np.ndarray:
         """Fit (no-op) then transform."""
         return self.fit(y).transform(y)

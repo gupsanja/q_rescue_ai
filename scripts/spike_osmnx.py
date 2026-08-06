@@ -4,10 +4,9 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 
-from q_rescue.simulation.road_network import SheffieldRoadNetwork
-from q_rescue.simulation.sheffield import SHEFFIELD_HOSPITALS
 from q_rescue.domain.models import Location
-from q_rescue.simulation.sheffield import haversine_distance
+from q_rescue.simulation.road_network import SheffieldRoadNetwork
+from q_rescue.simulation.sheffield import SHEFFIELD_HOSPITALS, haversine_distance
 
 
 def main():

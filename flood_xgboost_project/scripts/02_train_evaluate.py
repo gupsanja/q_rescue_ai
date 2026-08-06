@@ -34,30 +34,29 @@ import sys
 import warnings
 from pathlib import Path
 
+import matplotlib
 import numpy as np
 import pandas as pd
-import matplotlib
 
 matplotlib.use("Agg")
+import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
-    precision_score,
-    recall_score,
-    confusion_matrix,
     classification_report,
+    confusion_matrix,
+    f1_score,
     mean_absolute_error,
     mean_squared_error,
+    precision_score,
     r2_score,
+    recall_score,
 )
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier, XGBRegressor
-import joblib
 
 warnings.filterwarnings("ignore")
 
@@ -210,7 +209,7 @@ normalization = {
         "min": demand_min,
         "max": demand_max,
         "computed_from": "training_set",
-        "n_train": int(len(yreg_train)),
+        "n_train": len(yreg_train),
     }
 }
 with open(OUT_DIR / "normalization.json", "w") as f:

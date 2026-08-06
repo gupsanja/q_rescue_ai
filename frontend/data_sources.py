@@ -4,10 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-
 from adapters import SHEFFIELD_LOCATIONS
 from utils import calculate_disaster_metrics, load_latest_simulation_results
-
 
 ROOT_DIR = Path(__file__).resolve().parent
 SAMPLE_DATA_FILE = ROOT_DIR / "data" / "disaster_sample_data.csv"

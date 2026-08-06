@@ -1,11 +1,9 @@
 import folium
 import streamlit as st
-from streamlit_folium import st_folium
-
 from auth import require_login
 from data_sources import build_incident_locations, get_active_simulation_results
+from streamlit_folium import st_folium
 from ui_theme import apply_global_style, page_header, render_table
-
 
 st.set_page_config(page_title="Sheffield Map Visualisation", page_icon=":world_map:", layout="wide")
 apply_global_style()
