@@ -92,9 +92,7 @@ def validate_ai_prediction(pred: dict) -> None:
     )
 
     sev_int = pred.get("flood_severity_int")
-    assert sev_int in _VALID_INTS, (
-        f"flood_severity_int must be in {{0,1,2,3}}, got {sev_int!r}"
-    )
+    assert sev_int in _VALID_INTS, f"flood_severity_int must be in {{0,1,2,3}}, got {sev_int!r}"
 
     weight = pred.get("flood_severity_weight")
     assert weight in _VALID_WEIGHTS, (
@@ -108,9 +106,7 @@ def validate_ai_prediction(pred: dict) -> None:
 
     probs = pred.get("class_probabilities", {})
     total = sum(float(v) for v in probs.values())
-    assert abs(total - 1.0) < 1e-4, (
-        f"class_probabilities must sum to 1.0 (±1e-4), got {total:.8f}"
-    )
+    assert abs(total - 1.0) < 1e-4, f"class_probabilities must sum to 1.0 (±1e-4), got {total:.8f}"
 
     confidence = pred.get("confidence")
     assert confidence is not None and 0.0 <= float(confidence) <= 1.0, (
@@ -142,18 +138,14 @@ def validate_qubo_patch(patch: dict, incident_ids: list[str]) -> None:
 
     severity_overrides = patch.get("severity_overrides", {})
     for iid, w in severity_overrides.items():
-        assert iid in valid_ids, (
-            f"severity_overrides contains unknown incident_id {iid!r}"
-        )
+        assert iid in valid_ids, f"severity_overrides contains unknown incident_id {iid!r}"
         assert w in _VALID_WEIGHTS, (
             f"severity_overrides[{iid!r}] must be in {{25,50,75,100}}, got {w!r}"
         )
 
     demand_overrides = patch.get("demand_overrides", {})
     for iid, val in demand_overrides.items():
-        assert iid in valid_ids, (
-            f"demand_overrides contains unknown incident_id {iid!r}"
-        )
+        assert iid in valid_ids, f"demand_overrides contains unknown incident_id {iid!r}"
         assert 0.0 <= float(val) <= 1.0, (
             f"demand_overrides[{iid!r}] must be in [0.0, 1.0], got {val!r}"
         )

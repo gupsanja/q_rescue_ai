@@ -72,7 +72,9 @@ def _apply_capacity_multiplier(hospitals: list[Hospital], multiplier: float) -> 
     ]
 
 
-def _generate_hydro_features(rng: Random, location: object, rainfall_24h: float) -> dict[str, float | int]:
+def _generate_hydro_features(
+    rng: Random, location: object, rainfall_24h: float
+) -> dict[str, float | int]:
     """Generate 14 hydrological/geographic features for a flood incident."""
     rainfall_72h = rainfall_24h + rng.uniform(20.0, 150.0)
     river_level = rng.uniform(0.5, 8.0)
@@ -81,7 +83,7 @@ def _generate_hydro_features(rng: Random, location: object, rainfall_24h: float)
     upstream = rng.uniform(0.0, 300.0)
     temp = rng.uniform(-5.0, 25.0)
     wind = rng.uniform(0.0, 80.0)
-    
+
     elevation = rng.uniform(10.0, 300.0)
     dist_river = rng.uniform(0.05, 5.0)
     drainage = rng.uniform(0.0, 1.0)
@@ -171,7 +173,9 @@ def generate_flood_scenario(
         + [Severity.CRITICAL] * 25
     )
 
-    rainfall_24h = float(_cfg(config, "simulation", "rainfall_24h_mm", default=rng.uniform(50.0, 150.0)))
+    rainfall_24h = float(
+        _cfg(config, "simulation", "rainfall_24h_mm", default=rng.uniform(50.0, 150.0))
+    )
 
     incidents = []
     for i in range(num_incidents):  # num_incidents is int after cast above
@@ -188,11 +192,11 @@ def generate_flood_scenario(
             severity=rng.choice(severity_pool),
             category=DisasterCategory.FLOOD,
         )
-        
+
         # Attach generated hydro features directly to the frozen Incident dataclass instance
         hydro_features = _generate_hydro_features(rng, location, rainfall_24h)
         object.__setattr__(incident, "hydro_features", hydro_features)
-        
+
         incidents.append(incident)
 
     hospitals = _apply_capacity_multiplier(SHEFFIELD_HOSPITALS, 0.70)

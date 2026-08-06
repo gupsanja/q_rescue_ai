@@ -23,7 +23,9 @@ locations = build_incident_locations(results).rename(
         "Incident Type": "Type",
     }
 )
-st.caption(f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv")
+st.caption(
+    f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv"
+)
 
 selected_location = st.selectbox("Select Sheffield location", locations["Name"])
 selected_row = locations[locations["Name"] == selected_location].iloc[0]
@@ -57,9 +59,7 @@ for _, row in locations.iterrows():
     folium.Marker(
         location=[row["Latitude"], row["Longitude"]],
         popup=(
-            f"<strong>{row['Name']}</strong><br>"
-            f"Type: {row['Type']}<br>"
-            f"Risk: {row['Risk Level']}"
+            f"<strong>{row['Name']}</strong><br>Type: {row['Type']}<br>Risk: {row['Risk Level']}"
         ),
         tooltip=f"{row['Name']} - {row['Risk Level']}",
         icon=folium.Icon(color=color, icon=icon),

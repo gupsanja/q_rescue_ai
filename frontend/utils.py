@@ -48,7 +48,7 @@ def calculate_disaster_metrics(
     affected_population,
     available_ambulances,
     available_rescue_teams,
-    available_food_units
+    available_food_units,
 ):
     """
     This function generates simulated disaster response metrics.
@@ -61,7 +61,9 @@ def calculate_disaster_metrics(
 
     estimated_casualties = int(severity_ratio * 0.12 * affected_population)
 
-    response_time = max(5, int(34 - (available_ambulances * 0.4) - (available_rescue_teams * 0.3) + severity * 3))
+    response_time = max(
+        5, int(34 - (available_ambulances * 0.4) - (available_rescue_teams * 0.3) + severity * 3)
+    )
 
     resources_needed = int((affected_population / 1000) + (severity * 12))
 
@@ -87,5 +89,5 @@ def calculate_disaster_metrics(
         "critical_risk": critical_risk,
         "high_risk": high_risk,
         "medium_risk": medium_risk,
-        "low_risk": low_risk
+        "low_risk": low_risk,
     }

@@ -51,7 +51,9 @@ def load_disaster_sample_data() -> pd.DataFrame:
         "food_units",
     ]
     for column in numeric_columns:
-        sample_data[column] = pd.to_numeric(sample_data[column], errors="coerce").fillna(0).astype(int)
+        sample_data[column] = (
+            pd.to_numeric(sample_data[column], errors="coerce").fillna(0).astype(int)
+        )
 
     return sample_data
 

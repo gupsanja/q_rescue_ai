@@ -24,7 +24,9 @@ page_header("A+", "Sheffield Hospital & Ambulance Tracker")
 
 results = get_active_simulation_results()
 incident_locations = build_incident_locations(results)
-st.caption(f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv")
+st.caption(
+    f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv"
+)
 
 base_hospitals = pd.DataFrame(
     {
@@ -187,7 +189,13 @@ def live_tracker():
     ).add_to(tracker_map)
 
     for _, hospital in hospitals.iterrows():
-        color = "red" if hospital["Status"] == "Critical" else "orange" if hospital["Status"] == "Limited" else "green"
+        color = (
+            "red"
+            if hospital["Status"] == "Critical"
+            else "orange"
+            if hospital["Status"] == "Limited"
+            else "green"
+        )
         folium.Marker(
             location=[hospital["Latitude"], hospital["Longitude"]],
             popup=(

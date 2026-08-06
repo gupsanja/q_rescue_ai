@@ -123,9 +123,9 @@ def predict_scenario(
     df = pd.DataFrame(observations)[EXPECTED_FEATURES].astype(float)
 
     # Batch inference
-    clf_int_preds: np.ndarray = clf.predict(df)               # shape (n,)
-    clf_proba: np.ndarray = clf.predict_proba(df)              # shape (n, 4)
-    reg_preds: np.ndarray = reg.predict(df).astype(float)      # shape (n,)
+    clf_int_preds: np.ndarray = clf.predict(df)  # shape (n,)
+    clf_proba: np.ndarray = clf.predict_proba(df)  # shape (n, 4)
+    reg_preds: np.ndarray = reg.predict(df).astype(float)  # shape (n,)
 
     # Decode int predictions → label strings
     label_preds: list[str] = encoder.inverse_transform(clf_int_preds)
@@ -150,8 +150,7 @@ def predict_scenario(
         # Class probabilities in canonical order (Low, Moderate, High, Severe)
         proba_row: np.ndarray = clf_proba[idx]
         class_probs: dict[str, float] = {
-            SEVERITY_ORDER[i]: round(float(proba_row[i]), 6)
-            for i in range(len(SEVERITY_ORDER))
+            SEVERITY_ORDER[i]: round(float(proba_row[i]), 6) for i in range(len(SEVERITY_ORDER))
         }
         # Normalise probabilities to exactly sum to 1.0 (floating-point safety)
         total_prob = sum(class_probs.values())
@@ -292,9 +291,7 @@ def build_dashboard_payload(
 
     mean_demand = round(total_demand / len(predictions), 2) if predictions else 0.0
     high_risk_ids = [
-        p["incident_id"]
-        for p in predictions
-        if p["flood_severity_label"] in ("High", "Severe")
+        p["incident_id"] for p in predictions if p["flood_severity_label"] in ("High", "Severe")
     ]
 
     aggregate = {

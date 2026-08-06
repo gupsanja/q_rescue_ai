@@ -31,11 +31,11 @@ summary = pd.DataFrame(
             results["disaster_type"],
             results["location"],
             results["severity"],
-            f'{results["affected_population"]:,}',
-            f'{results["estimated_casualties"]:,}',
-            f'{results["response_time"]} min',
+            f"{results['affected_population']:,}",
+            f"{results['estimated_casualties']:,}",
+            f"{results['response_time']} min",
             results["resources_needed"],
-            f'{results["optimisation_score"]}%',
+            f"{results['optimisation_score']}%",
         ],
     }
 )
