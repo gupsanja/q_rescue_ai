@@ -13,19 +13,17 @@ These are for M2/M3/M4 to sanity-check their consumers against before the
 real simulation engine (M2) is wired in, and are validated against the
 schema §6 rules before being written.
 """
-
 import json
 import sys
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from q_rescue.ai.predictor import (  # noqa: E402
-    build_dashboard_payload,
-    build_qubo_patch,
-    predict_scenario,
-)
+from q_rescue.ai.predictor import predict_scenario, build_qubo_patch, build_dashboard_payload  # noqa: E402
 from q_rescue.ai.validation import validate_ai_prediction, validate_qubo_patch  # noqa: E402
 
 MODEL_DIR = REPO_ROOT / "flood_xgboost_project" / "outputs"
@@ -47,74 +45,38 @@ INCIDENTS = [
 
 PROFILES = {
     "low": dict(
-        rainfall_24h_mm=12.0,
-        rainfall_72h_mm=28.0,
-        river_level_m=1.8,
-        river_level_change_rate=0.02,
-        soil_saturation_pct=35.0,
-        upstream_dam_release_m3s=20.0,
-        temperature_c=14.0,
-        wind_speed_kmh=10.0,
-        elevation_m=120.0,
-        distance_to_river_km=2.4,
-        drainage_capacity_index=0.82,
-        urbanization_pct=40.0,
-        population_density_per_km2=650.0,
-        previous_flood_history=0,
+        rainfall_24h_mm=12.0, rainfall_72h_mm=28.0, river_level_m=1.8,
+        river_level_change_rate=0.02, soil_saturation_pct=35.0,
+        upstream_dam_release_m3s=20.0, temperature_c=14.0, wind_speed_kmh=10.0,
+        elevation_m=120.0, distance_to_river_km=2.4, drainage_capacity_index=0.82,
+        urbanization_pct=40.0, population_density_per_km2=650.0, previous_flood_history=0,
     ),
     "moderate": dict(
-        rainfall_24h_mm=38.0,
-        rainfall_72h_mm=85.0,
-        river_level_m=3.2,
-        river_level_change_rate=0.18,
-        soil_saturation_pct=58.0,
-        upstream_dam_release_m3s=60.0,
-        temperature_c=11.5,
-        wind_speed_kmh=18.0,
-        elevation_m=70.0,
-        distance_to_river_km=1.1,
-        drainage_capacity_index=0.55,
-        urbanization_pct=60.0,
-        population_density_per_km2=1400.0,
-        previous_flood_history=0,
+        rainfall_24h_mm=38.0, rainfall_72h_mm=85.0, river_level_m=3.2,
+        river_level_change_rate=0.18, soil_saturation_pct=58.0,
+        upstream_dam_release_m3s=60.0, temperature_c=11.5, wind_speed_kmh=18.0,
+        elevation_m=70.0, distance_to_river_km=1.1, drainage_capacity_index=0.55,
+        urbanization_pct=60.0, population_density_per_km2=1400.0, previous_flood_history=0,
     ),
     "high": dict(
-        rainfall_24h_mm=76.5,
-        rainfall_72h_mm=193.2,
-        river_level_m=5.73,
-        river_level_change_rate=0.49,
-        soil_saturation_pct=87.4,
-        upstream_dam_release_m3s=158.6,
-        temperature_c=9.2,
-        wind_speed_kmh=34.1,
-        elevation_m=42.0,
-        distance_to_river_km=0.8,
-        drainage_capacity_index=0.38,
-        urbanization_pct=68.5,
-        population_density_per_km2=1850.0,
-        previous_flood_history=1,
+        rainfall_24h_mm=76.5, rainfall_72h_mm=193.2, river_level_m=5.73,
+        river_level_change_rate=0.49, soil_saturation_pct=87.4,
+        upstream_dam_release_m3s=158.6, temperature_c=9.2, wind_speed_kmh=34.1,
+        elevation_m=42.0, distance_to_river_km=0.8, drainage_capacity_index=0.38,
+        urbanization_pct=68.5, population_density_per_km2=1850.0, previous_flood_history=1,
     ),
     "severe": dict(
-        rainfall_24h_mm=118.0,
-        rainfall_72h_mm=260.0,
-        river_level_m=7.9,
-        river_level_change_rate=0.85,
-        soil_saturation_pct=96.0,
-        upstream_dam_release_m3s=240.0,
-        temperature_c=8.0,
-        wind_speed_kmh=52.0,
-        elevation_m=18.0,
-        distance_to_river_km=0.3,
-        drainage_capacity_index=0.22,
-        urbanization_pct=78.0,
-        population_density_per_km2=2600.0,
-        previous_flood_history=1,
+        rainfall_24h_mm=118.0, rainfall_72h_mm=260.0, river_level_m=7.9,
+        river_level_change_rate=0.85, soil_saturation_pct=96.0,
+        upstream_dam_release_m3s=240.0, temperature_c=8.0, wind_speed_kmh=52.0,
+        elevation_m=18.0, distance_to_river_km=0.3, drainage_capacity_index=0.22,
+        urbanization_pct=78.0, population_density_per_km2=2600.0, previous_flood_history=1,
     ),
 }
 
 observations = []
 for inc in INCIDENTS:
-    feats = dict(PROFILES[str(inc["profile"])])
+    feats = dict(PROFILES[inc["profile"]])
     observations.append(
         {
             "observation_id": f"OBS_{SCENARIO_ID}_{inc['id']}",
@@ -130,7 +92,7 @@ for p in predictions:
     validate_ai_prediction(p)
 
 qubo_patch = build_qubo_patch(predictions, SCENARIO_ID)
-validate_qubo_patch(qubo_patch, [str(inc["id"]) for inc in INCIDENTS])
+validate_qubo_patch(qubo_patch, [inc["id"] for inc in INCIDENTS])
 
 scenario = {"scenario_id": SCENARIO_ID, "incidents": INCIDENTS}
 dashboard_payload = build_dashboard_payload(predictions, scenario)

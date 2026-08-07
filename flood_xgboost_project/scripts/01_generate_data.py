@@ -13,11 +13,9 @@ correlated (as they are in reality) but not identical:
                              composite index of emergency resources needed
                              (personnel, boats, shelter capacity, pumps)
 """
-
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 RNG = np.random.default_rng(42)
 N = 6000
@@ -28,7 +26,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def generate():
     # ---- Core meteorological / hydrological features ----
-    rainfall_24h_mm = RNG.gamma(shape=2.0, scale=25, size=N)  # 0-250ish, right-skewed
+    rainfall_24h_mm = RNG.gamma(shape=2.0, scale=25, size=N)          # 0-250ish, right-skewed
     rainfall_72h_mm = rainfall_24h_mm * RNG.uniform(1.5, 3.2, N) + RNG.normal(0, 10, N)
     rainfall_72h_mm = np.clip(rainfall_72h_mm, 0, None)
 
@@ -38,7 +36,9 @@ def generate():
 
     river_level_change_rate = 0.012 * rainfall_24h_mm + RNG.normal(0, 0.15, N)
 
-    soil_saturation_pct = np.clip(30 + 0.35 * rainfall_72h_mm + RNG.normal(0, 8, N), 0, 100)
+    soil_saturation_pct = np.clip(
+        30 + 0.35 * rainfall_72h_mm + RNG.normal(0, 8, N), 0, 100
+    )
 
     upstream_dam_release_m3s = np.clip(
         RNG.gamma(shape=2.0, scale=40, size=N) + 0.5 * rainfall_72h_mm, 0, None
@@ -48,9 +48,9 @@ def generate():
     wind_speed_kmh = np.clip(RNG.gamma(2.2, 12, N), 0, None)
 
     # ---- Geographic / socio-economic features ----
-    elevation_m = np.clip(RNG.gamma(2.0, 40, N), 0, None)  # low elevation = higher risk
+    elevation_m = np.clip(RNG.gamma(2.0, 40, N), 0, None)              # low elevation = higher risk
     distance_to_river_km = np.clip(RNG.exponential(2.5, N), 0.05, None)
-    drainage_capacity_index = np.clip(RNG.beta(2.5, 2.0, N), 0, 1)  # 0=poor,1=excellent
+    drainage_capacity_index = np.clip(RNG.beta(2.5, 2.0, N), 0, 1)     # 0=poor,1=excellent
     urbanization_pct = np.clip(RNG.beta(2.0, 2.0, N) * 100, 0, 100)
     population_density_per_km2 = np.clip(
         RNG.gamma(2.0, 800, N) * (0.4 + urbanization_pct / 100), 5, None
@@ -93,7 +93,7 @@ def generate():
     urbanization_effect = 1 + 0.006 * urbanization_pct
     resource_demand_units = (
         base_demand * exposure_multiplier * urbanization_effect
-        + 0.08 * population_density_per_km2**0.5
+        + 0.08 * population_density_per_km2 ** 0.5
         + RNG.normal(0, 25, N)
     )
     resource_demand_units = np.clip(resource_demand_units, 5, None)

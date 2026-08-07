@@ -28,40 +28,33 @@ CHANGELOG vs v1 (schema-compliance pass, Phase 2):
     flood_xgboost_project/outputs/{xgb_severity_classifier,
     xgb_resource_regressor,label_encoder}.joblib
 """
-
 import json
 import sys
 import warnings
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 import pandas as pd
-
+import matplotlib
 matplotlib.use("Agg")
-import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix,
-    f1_score,
-    mean_absolute_error,
-    mean_squared_error,
-    precision_score,
-    r2_score,
-    recall_score,
-)
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.metrics import (
+    accuracy_score, f1_score, precision_score, recall_score,
+    confusion_matrix, classification_report,
+    mean_absolute_error, mean_squared_error, r2_score,
+)
 from xgboost import XGBClassifier, XGBRegressor
+import joblib
 
 warnings.filterwarnings("ignore")
 
-ROOT = Path(__file__).resolve().parents[1]  # flood_xgboost_project/
-REPO_ROOT = ROOT.parent  # repo root (contains src/)
+ROOT = Path(__file__).resolve().parents[1]              # flood_xgboost_project/
+REPO_ROOT = ROOT.parent                                  # repo root (contains src/)
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from q_rescue.ai.label_mapper import SEVERITY_ORDER, CanonicalSeverityEncoder  # noqa: E402
@@ -132,7 +125,6 @@ baseline_clf = LogisticRegression(max_iter=2000)
 baseline_clf.fit(Xtr_s, yclf_train)
 pred_base_clf = baseline_clf.predict(Xte_s)
 
-
 def clf_metrics(y_true, y_pred):
     return {
         "accuracy": accuracy_score(y_true, y_pred),
@@ -142,27 +134,18 @@ def clf_metrics(y_true, y_pred):
         "macro_recall": recall_score(y_true, y_pred, average="macro"),
     }
 
-
 metrics_xgb_clf = clf_metrics(yclf_test, pred_xgb_clf)
 metrics_base_clf = clf_metrics(yclf_test, pred_base_clf)
 
 # target_names indexed 0..3 MUST follow the canonical order, which is now
 # guaranteed to match the encoded ints because we no longer use LabelEncoder.
 report_xgb = classification_report(
-    yclf_test,
-    pred_xgb_clf,
-    labels=[0, 1, 2, 3],
-    target_names=SEVERITY_ORDER,
-    output_dict=True,
-    zero_division=0,
+    yclf_test, pred_xgb_clf, labels=[0, 1, 2, 3], target_names=SEVERITY_ORDER,
+    output_dict=True, zero_division=0,
 )
 report_base = classification_report(
-    yclf_test,
-    pred_base_clf,
-    labels=[0, 1, 2, 3],
-    target_names=SEVERITY_ORDER,
-    output_dict=True,
-    zero_division=0,
+    yclf_test, pred_base_clf, labels=[0, 1, 2, 3], target_names=SEVERITY_ORDER,
+    output_dict=True, zero_division=0,
 )
 
 # ----------------------------------------------------------------------
@@ -186,7 +169,6 @@ baseline_reg = LinearRegression()
 baseline_reg.fit(Xtr_s, yreg_train)
 pred_base_reg = baseline_reg.predict(Xte_s)
 
-
 def reg_metrics(y_true, y_pred):
     mse = mean_squared_error(y_true, y_pred)
     return {
@@ -194,7 +176,6 @@ def reg_metrics(y_true, y_pred):
         "rmse": float(np.sqrt(mse)),
         "r2": r2_score(y_true, y_pred),
     }
-
 
 metrics_xgb_reg = reg_metrics(yreg_test, pred_xgb_reg)
 metrics_base_reg = reg_metrics(yreg_test, pred_base_reg)
@@ -209,7 +190,7 @@ normalization = {
         "min": demand_min,
         "max": demand_max,
         "computed_from": "training_set",
-        "n_train": len(yreg_train),
+        "n_train": int(len(yreg_train)),
     }
 }
 with open(OUT_DIR / "normalization.json", "w") as f:
@@ -276,14 +257,8 @@ for ax, preds, title in [
 ]:
     cm = confusion_matrix(yclf_test, preds, labels=[0, 1, 2, 3])
     sns.heatmap(
-        cm,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        ax=ax,
-        xticklabels=SEVERITY_ORDER,
-        yticklabels=SEVERITY_ORDER,
-        cbar=False,
+        cm, annot=True, fmt="d", cmap="Blues", ax=ax,
+        xticklabels=SEVERITY_ORDER, yticklabels=SEVERITY_ORDER, cbar=False,
     )
     ax.set_title(title)
     ax.set_xlabel("Predicted")
@@ -293,14 +268,11 @@ plt.savefig(CHART_DIR / "confusion_matrices.png", dpi=150)
 plt.close()
 
 clf_metric_names = ["accuracy", "macro_f1", "weighted_f1", "macro_precision", "macro_recall"]
-clf_compare_df = pd.DataFrame(
-    {
-        "metric": clf_metric_names * 2,
-        "value": [metrics_xgb_clf[m] for m in clf_metric_names]
-        + [metrics_base_clf[m] for m in clf_metric_names],
-        "model": ["XGBoost"] * 5 + ["Baseline"] * 5,
-    }
-)
+clf_compare_df = pd.DataFrame({
+    "metric": clf_metric_names * 2,
+    "value": [metrics_xgb_clf[m] for m in clf_metric_names] + [metrics_base_clf[m] for m in clf_metric_names],
+    "model": ["XGBoost"] * 5 + ["Baseline"] * 5,
+})
 fig, ax = plt.subplots(figsize=(8, 4.5))
 sns.barplot(data=clf_compare_df, x="metric", y="value", hue="model", palette=PALETTE, ax=ax)
 ax.set_ylim(0, 1)
@@ -344,7 +316,7 @@ for ax, m in zip(axes, reg_metric_names):
     bars = ax.bar(["XGBoost", "Baseline"], vals, color=[PALETTE["XGBoost"], PALETTE["Baseline"]])
     ax.set_title(m.upper())
     for b, v in zip(bars, vals):
-        ax.text(b.get_x() + b.get_width() / 2, v, f"{v:.2f}", ha="center", va="bottom", fontsize=9)
+        ax.text(b.get_x() + b.get_width()/2, v, f"{v:.2f}", ha="center", va="bottom", fontsize=9)
 plt.suptitle("Regression Performance: XGBoost vs Baseline", y=1.03)
 plt.tight_layout()
 plt.savefig(CHART_DIR / "regression_comparison.png", dpi=150)
