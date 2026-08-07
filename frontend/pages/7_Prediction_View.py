@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from auth import require_login
-from prediction import predict_outcome, simulation_severity_score
+from prediction import get_prediction, simulation_severity_score
 from ui_theme import apply_global_style, page_header, render_table
 
 st.set_page_config(
@@ -25,12 +25,15 @@ if "simulation_results" not in st.session_state:
     st.stop()
 
 simulation = st.session_state["simulation_results"]
-prediction = predict_outcome(simulation)
+prediction = get_prediction(simulation)
 
-st.warning(
-    "This is a deterministic prototype forecast based on the submitted scenario "
-    "and resource availability. It is not output from a trained AI or clinical model."
-)
+if prediction.get("_source") == "xgboost":
+    st.success("Showing live XGBoost model output from Member 5's pipeline.")
+else:
+    st.warning(
+        "This is a deterministic prototype forecast based on the submitted scenario "
+        "and resource availability. It is not output from a trained AI or clinical model."
+    )
 
 metric_columns = st.columns(4)
 metric_columns[0].metric(

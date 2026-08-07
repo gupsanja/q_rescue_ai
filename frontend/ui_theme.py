@@ -3,6 +3,7 @@ from pathlib import Path
 
 import streamlit as st
 
+
 ROOT_DIR = Path(__file__).resolve().parent
 BACKGROUND_IMAGE = ROOT_DIR / "assets" / "app_background.jpg"
 
@@ -284,5 +285,5 @@ def page_header(icon, title, subtitle=None):
 
 
 def render_table(dataframe):
-    table_html = dataframe.to_html(index=False, classes="clear-table", border=0)
+    table_html = dataframe.astype(str).to_html(index=False, classes="clear-table", border=0)
     st.markdown(table_html, unsafe_allow_html=True)

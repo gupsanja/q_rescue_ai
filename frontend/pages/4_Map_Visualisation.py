@@ -1,9 +1,11 @@
 import folium
 import streamlit as st
+from streamlit_folium import st_folium
+
 from auth import require_login
 from data_sources import build_incident_locations, get_active_simulation_results
-from streamlit_folium import st_folium
 from ui_theme import apply_global_style, page_header, render_table
+
 
 st.set_page_config(page_title="Sheffield Map Visualisation", page_icon=":world_map:", layout="wide")
 apply_global_style()
@@ -21,9 +23,7 @@ locations = build_incident_locations(results).rename(
         "Incident Type": "Type",
     }
 )
-st.caption(
-    f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv"
-)
+st.caption(f"Data source: {results.get('data_source', 'current simulation results')} + frontend/data/disaster_sample_data.csv")
 
 selected_location = st.selectbox("Select Sheffield location", locations["Name"])
 selected_row = locations[locations["Name"] == selected_location].iloc[0]
@@ -57,7 +57,9 @@ for _, row in locations.iterrows():
     folium.Marker(
         location=[row["Latitude"], row["Longitude"]],
         popup=(
-            f"<strong>{row['Name']}</strong><br>Type: {row['Type']}<br>Risk: {row['Risk Level']}"
+            f"<strong>{row['Name']}</strong><br>"
+            f"Type: {row['Type']}<br>"
+            f"Risk: {row['Risk Level']}"
         ),
         tooltip=f"{row['Name']} - {row['Risk Level']}",
         icon=folium.Icon(color=color, icon=icon),

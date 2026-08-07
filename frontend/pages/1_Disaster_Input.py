@@ -1,8 +1,9 @@
-import sys
 from pathlib import Path
+import sys
 
 import pandas as pd
 import streamlit as st
+
 
 # Makes utils.py import correctly when this page runs inside Streamlit
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -22,6 +23,7 @@ from utils import (
     load_latest_simulation_results,
     save_simulation_results,
 )
+
 
 st.set_page_config(page_title="Disaster Input", page_icon=":memo:", layout="wide")
 apply_global_style()
@@ -251,16 +253,16 @@ if submitted:
                 f"{severity_label} ({severity})",
                 simulation_results["domain_payload"]["incident"]["category"],
                 f"{affected_population:,}",
-                available_ambulances,
-                available_rescue_teams,
-                available_food_units,
+                str(available_ambulances),
+                str(available_rescue_teams),
+                str(available_food_units),
                 f"{results['estimated_casualties']:,}",
                 f"{results['response_time']} min",
-                results["resources_needed"],
+                str(results["resources_needed"]),
                 f"{results['optimisation_score']}%",
-                results["recommended_ambulances"],
-                results["recommended_rescue_teams"],
-                results["recommended_food_units"],
+                str(results["recommended_ambulances"]),
+                str(results["recommended_rescue_teams"]),
+                str(results["recommended_food_units"]),
                 f"{results['critical_risk']}%",
                 f"{results['high_risk']}%",
                 f"{results['medium_risk']}%",
@@ -270,4 +272,4 @@ if submitted:
     )
 
     st.subheader("Simulation Results")
-    st.dataframe(results_table, use_container_width=True, hide_index=True)
+    st.dataframe(results_table, width="stretch", hide_index=True)

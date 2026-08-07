@@ -4,8 +4,10 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
 from adapters import SHEFFIELD_LOCATIONS
 from utils import calculate_disaster_metrics, load_latest_simulation_results
+
 
 ROOT_DIR = Path(__file__).resolve().parent
 SAMPLE_DATA_FILE = ROOT_DIR / "data" / "disaster_sample_data.csv"
@@ -49,9 +51,7 @@ def load_disaster_sample_data() -> pd.DataFrame:
         "food_units",
     ]
     for column in numeric_columns:
-        sample_data[column] = (
-            pd.to_numeric(sample_data[column], errors="coerce").fillna(0).astype(int)
-        )
+        sample_data[column] = pd.to_numeric(sample_data[column], errors="coerce").fillna(0).astype(int)
 
     return sample_data
 
