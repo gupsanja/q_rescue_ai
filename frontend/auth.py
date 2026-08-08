@@ -2,6 +2,7 @@ import hmac
 
 import streamlit as st
 
+
 USERS = {
     "admin": {
         "password": "QRescue123",

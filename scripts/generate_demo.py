@@ -5,14 +5,14 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 
 from q_rescue.domain.models import DisasterCategory
-from q_rescue.simulation.constraints import OperationalConstraints
 from q_rescue.simulation.distance_matrix import (
     build_distance_matrix,
-    build_incident_hospital_matrix,
     build_severity_mapping,
+    build_incident_hospital_matrix,
 )
 from q_rescue.simulation.exporters import export_all
 from q_rescue.simulation.scenarios import generate_scenario_by_category
+from q_rescue.simulation.constraints import OperationalConstraints
 
 
 def main():

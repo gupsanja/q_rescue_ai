@@ -1,8 +1,10 @@
 import pandas as pd
 import streamlit as st
+
 from auth import require_login
 from data_sources import get_active_simulation_results
 from ui_theme import apply_global_style, page_header, render_table
+
 
 st.set_page_config(page_title="Results Dashboard", page_icon=":bar_chart:", layout="wide")
 apply_global_style()
@@ -28,12 +30,12 @@ summary = pd.DataFrame(
         "Metric Value": [
             results["disaster_type"],
             results["location"],
-            results["severity"],
-            f"{results['affected_population']:,}",
-            f"{results['estimated_casualties']:,}",
-            f"{results['response_time']} min",
-            results["resources_needed"],
-            f"{results['optimisation_score']}%",
+            str(results["severity"]),
+            f'{results["affected_population"]:,}',
+            f'{results["estimated_casualties"]:,}',
+            f'{results["response_time"]} min',
+            str(results["resources_needed"]),
+            f'{results["optimisation_score"]}%',
         ],
     }
 )

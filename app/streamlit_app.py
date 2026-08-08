@@ -3,6 +3,7 @@ import streamlit as st
 from q_rescue.services.response_service import compare_allocators
 from q_rescue.simulation.generator import generate_scenario
 
+
 st.set_page_config(page_title="Q-Rescue AI", layout="wide")
 st.title("Q-Rescue AI")
 st.caption("Classical and quantum-inspired emergency resource allocation")
