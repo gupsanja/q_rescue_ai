@@ -159,6 +159,32 @@ directly. The patch is applied to the builder first, which keeps the quantum
 solver interface focused on optimisation inputs and avoids changing Member 4's
 orchestration code unless the team explicitly wants that API later.
 
+## Before/After Demo Command
+
+Use this script to prove that AI predictions flow into the QUBO and can change
+the exact allocation result:
+
+```bash
+.venv/bin/python scripts/run_ai_qubo_demo.py
+```
+
+The script:
+
+- generates a deterministic Sheffield flood scenario,
+- runs the existing AI prediction pipeline,
+- converts AI predictions into a QUBO patch,
+- compares baseline exact QUBO allocation against AI-patched exact QUBO
+  allocation,
+- reports selected AI high-risk incidents separately from the original
+  simulation severity metrics,
+- writes `data/outputs/ai_qubo_demo/ai_qubo_before_after_summary.json`.
+
+If the AI packages are missing locally, install the project AI extras first:
+
+```bash
+.venv/bin/python -m pip install -e ".[ai]"
+```
+
 ## Validation Completed
 
 Member 1 validation now covers:
