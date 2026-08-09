@@ -118,6 +118,73 @@ the Phase 1 QUBO constraints:
 - the model assigns up to `min(number_of_ambulances, number_of_incidents)`,
 - optional hard critical-priority mode still works with AI-predicted severity.
 
+## How Teammates Should Call This
+
+The AI prediction layer should produce a `qubo_patch` dictionary using the
+contract above. Member 1 code consumes that patch through the QUBO builder:
+
+```python
+from q_rescue.quantum.optimizer import QuantumAllocator
+from q_rescue.quantum.qaoa_solver import ExactQuboSolver
+from q_rescue.quantum.qubo import AmbulanceAllocationQuboBuilder
+
+builder = AmbulanceAllocationQuboBuilder(
+    distance_weight=1.0,
+    severity_weight=8.0,
+    demand_weight=8.0,
+    critical_priority=True,
+)
+
+patched_builder = builder.apply_ai_patch(qubo_patch)
+allocator = QuantumAllocator(builder=patched_builder, solver=ExactQuboSolver())
+
+result = allocator.solve(
+    ambulances=scenario.ambulances,
+    incidents=scenario.incidents,
+    distance_matrix=distance_matrix,
+    severity_mapping=severity_mapping,
+)
+```
+
+The returned `result` is an `OptimizationResult`. Teammates should use:
+
+- `result.assignments` for ambulance-to-incident allocations,
+- `result.objective_value` for the QUBO objective value,
+- `result.solver_name` to show which solver produced the result,
+- `result.feasible` to confirm the assignment respects the one-to-one rules,
+- `result.metadata["binary_variables"]` for the number of QUBO variables.
+
+Current design choice: `QuantumAllocator.solve()` does not accept `ai_patch`
+directly. The patch is applied to the builder first, which keeps the quantum
+solver interface focused on optimisation inputs and avoids changing Member 4's
+orchestration code unless the team explicitly wants that API later.
+
+## Before/After Demo Command
+
+Use this script to prove that AI predictions flow into the QUBO and can change
+the exact allocation result:
+
+```bash
+.venv/bin/python scripts/run_ai_qubo_demo.py
+```
+
+The script:
+
+- generates a deterministic Sheffield flood scenario,
+- runs the existing AI prediction pipeline,
+- converts AI predictions into a QUBO patch,
+- compares baseline exact QUBO allocation against AI-patched exact QUBO
+  allocation,
+- reports selected AI high-risk incidents separately from the original
+  simulation severity metrics,
+- writes `data/outputs/ai_qubo_demo/ai_qubo_before_after_summary.json`.
+
+If the AI packages are missing locally, install the project AI extras first:
+
+```bash
+.venv/bin/python -m pip install -e ".[ai]"
+```
+
 ## Validation Completed
 
 Member 1 validation now covers:
