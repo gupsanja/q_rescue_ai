@@ -5,41 +5,37 @@ from auth import require_login
 from data_sources import get_active_simulation_results
 from ui_theme import apply_global_style, page_header, render_table
 
-
 st.set_page_config(page_title="Results Dashboard", page_icon=":bar_chart:", layout="wide")
 apply_global_style()
 require_login()
 
 page_header("RS", "Simulation Results")
 
+# Load the active simulation — falls back to cache then sample CSV if needed
 results = get_active_simulation_results()
 st.caption(f"Data source: {results.get('data_source', 'current simulation results')}")
 
+# Summary table — all values cast to str to prevent PyArrow serialization errors
 summary = pd.DataFrame(
     {
         "Metric": [
-            "Disaster Type",
-            "Location",
-            "Severity",
-            "Affected Population",
-            "Estimated Casualties",
-            "Response Time",
-            "Resources Needed",
-            "Optimisation Score",
+            "Disaster Type", "Location", "Severity", "Affected Population",
+            "Estimated Casualties", "Response Time", "Resources Needed", "Optimisation Score",
         ],
         "Metric Value": [
             results["disaster_type"],
             results["location"],
-            results["severity"],
+            str(results["severity"]),
             f'{results["affected_population"]:,}',
             f'{results["estimated_casualties"]:,}',
             f'{results["response_time"]} min',
-            results["resources_needed"],
+            str(results["resources_needed"]),
             f'{results["optimisation_score"]}%',
         ],
     }
 )
 
+# Resource table — shows available vs recommended counts side by side
 resources = pd.DataFrame(
     {
         "Resource Metric": ["Ambulances", "Rescue Teams", "Food Units"],
@@ -56,6 +52,7 @@ resources = pd.DataFrame(
     }
 )
 
+# Risk table — percentage breakdown across four severity levels
 risk = pd.DataFrame(
     {
         "Risk Level": ["Low", "Medium", "High", "Critical"],
@@ -68,6 +65,7 @@ risk = pd.DataFrame(
     }
 )
 
+# Render summary and resources side by side, risk below
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Summary")

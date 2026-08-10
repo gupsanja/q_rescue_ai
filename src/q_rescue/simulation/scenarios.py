@@ -72,6 +72,41 @@ def _apply_capacity_multiplier(hospitals: list[Hospital], multiplier: float) -> 
     ]
 
 
+def _generate_hydro_features(rng: Random, location: object, rainfall_24h: float) -> dict[str, float | int]:
+    """Generate 14 hydrological/geographic features for a flood incident."""
+    rainfall_72h = rainfall_24h + rng.uniform(20.0, 150.0)
+    river_level = rng.uniform(0.5, 8.0)
+    river_rate = rng.uniform(-0.5, 1.5)
+    soil_sat = rng.uniform(40.0, 100.0)
+    upstream = rng.uniform(0.0, 300.0)
+    temp = rng.uniform(-5.0, 25.0)
+    wind = rng.uniform(0.0, 80.0)
+    
+    elevation = rng.uniform(10.0, 300.0)
+    dist_river = rng.uniform(0.05, 5.0)
+    drainage = rng.uniform(0.0, 1.0)
+    urban = rng.uniform(10.0, 100.0)
+    pop_density = rng.uniform(100.0, 5000.0)
+    history = rng.choice([0, 1])
+
+    return {
+        "rainfall_24h_mm": round(rainfall_24h, 1),
+        "rainfall_72h_mm": round(rainfall_72h, 1),
+        "river_level_m": round(river_level, 2),
+        "river_level_change_rate": round(river_rate, 2),
+        "soil_saturation_pct": round(soil_sat, 1),
+        "upstream_dam_release_m3s": round(upstream, 1),
+        "temperature_c": round(temp, 1),
+        "wind_speed_kmh": round(wind, 1),
+        "elevation_m": round(elevation, 1),
+        "distance_to_river_km": round(dist_river, 2),
+        "drainage_capacity_index": round(drainage, 2),
+        "urbanization_pct": round(urban, 1),
+        "population_density_per_km2": round(pop_density, 1),
+        "previous_flood_history": history,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Scenario generators
 # ---------------------------------------------------------------------------
@@ -136,6 +171,8 @@ def generate_flood_scenario(
         + [Severity.CRITICAL] * 25
     )
 
+    rainfall_24h = float(_cfg(config, "simulation", "rainfall_24h_mm", default=rng.uniform(50.0, 150.0)))
+
     incidents = []
     for i in range(num_incidents):  # num_incidents is int after cast above
         if rng.random() < 0.70:
@@ -145,14 +182,18 @@ def generate_flood_scenario(
         else:
             location = random_sheffield_location(rng)
 
-        incidents.append(
-            Incident(
-                id=f"I{i + 1}",
-                location=location,
-                severity=rng.choice(severity_pool),
-                category=DisasterCategory.FLOOD,
-            )
+        incident = Incident(
+            id=f"I{i + 1}",
+            location=location,
+            severity=rng.choice(severity_pool),
+            category=DisasterCategory.FLOOD,
         )
+        
+        # Attach generated hydro features directly to the frozen Incident dataclass instance
+        hydro_features = _generate_hydro_features(rng, location, rainfall_24h)
+        object.__setattr__(incident, "hydro_features", hydro_features)
+        
+        incidents.append(incident)
 
     hospitals = _apply_capacity_multiplier(SHEFFIELD_HOSPITALS, 0.70)
 

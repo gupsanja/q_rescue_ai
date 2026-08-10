@@ -8,15 +8,17 @@ from auth import (
 )
 from ui_theme import apply_global_style
 
-
+# Configure the Streamlit page — title, icon, and wide layout
 st.set_page_config(
     page_title="Q-Rescue AI",
     page_icon=":ambulance:",
     layout="wide",
 )
 
+# Apply the shared dark emergency-control-centre theme
 apply_global_style()
 
+# Inject page-specific CSS for the login and home title layouts
 st.markdown(
     """
     <style>
@@ -91,7 +93,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Show the login screen if the user is not authenticated
 if not is_logged_in():
+    # Render the Q-Rescue branding above the login form
     st.markdown(
         """
         <div class="login-title">
@@ -103,6 +107,7 @@ if not is_logged_in():
         unsafe_allow_html=True,
     )
 
+    # Centre the login form using three columns
     left, login_col, right = st.columns([1.2, 1, 1.2])
     with login_col:
         with st.form("login_form"):
@@ -110,6 +115,7 @@ if not is_logged_in():
             password = st.text_input("Password", type="password", placeholder="Enter password")
             submitted = st.form_submit_button("Log In", use_container_width=True)
 
+        # Validate credentials and start the session on success
         if submitted:
             if validate_login(username, password):
                 log_in(username)
@@ -117,6 +123,7 @@ if not is_logged_in():
             else:
                 st.error("Incorrect username or password.")
 
+    # Hide the sidebar until the user is logged in
     st.markdown(
         """
         <style>
@@ -129,8 +136,10 @@ if not is_logged_in():
     )
     st.stop()
 
+# Render the sidebar navigation for authenticated users
 render_sidebar_nav()
 
+# Show the home landing page with Q-Rescue branding
 st.markdown(
     """
     <div class="home-title">

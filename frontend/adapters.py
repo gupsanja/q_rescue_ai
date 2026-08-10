@@ -1,17 +1,19 @@
-"""Adapters between the Streamlit demo and the Q-Rescue domain model.
-
-The frontend still uses UI-friendly data for forms, charts and maps. The
-backend domain model in ``src/q_rescue/domain/models.py`` uses stricter
-canonical values:
-
-- Severity: 1 LOW, 2 MEDIUM, 3 HIGH, 4 CRITICAL
-- DisasterCategory: generic, flood, industrial_accident, city_wide_emergency
-- Location(x, y)
-- Ambulance(id, location, status)
-
-This module keeps that mapping explicit until the frontend calls the backend
-service layer directly.
-"""
+# =============================================================================
+# adapters.py — UI-to-backend domain model mapping.
+#
+# Responsibilities:
+#   - Defines canonical enums matching the backend domain model:
+#       Severity (1=LOW, 2=MEDIUM, 3=HIGH, 4=CRITICAL)
+#       DisasterCategory (generic, flood, industrial_accident,
+#                         city_wide_emergency)
+#   - Provides Location and Ambulance dataclasses matching backend shapes.
+#   - Maps UI dropdown labels to backend enum values.
+#   - to_domain_payload(): converts a simulation results dict into a
+#     JSON-friendly payload aligned with backend domain objects.
+#
+# This module keeps the UI-to-backend mapping explicit until the frontend
+# calls the backend service layer directly.
+# =============================================================================
 
 from __future__ import annotations
 
