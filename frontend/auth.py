@@ -2,7 +2,7 @@ import hmac
 
 import streamlit as st
 
-
+# Hardcoded demo accounts — replace with backend auth before real deployment
 USERS = {
     "admin": {
         "password": "QRescue123",
@@ -23,10 +23,12 @@ USERS = {
 
 
 def is_logged_in():
+    # Check if the current session has been authenticated
     return bool(st.session_state.get("authenticated", False))
 
 
 def validate_login(username, password):
+    # Look up the account and compare passwords using constant-time comparison
     account = USERS.get(username.strip().lower())
     if not account:
         return False
@@ -34,6 +36,7 @@ def validate_login(username, password):
 
 
 def log_in(username):
+    # Store user info in session state after successful login
     username = username.strip().lower()
     account = USERS[username]
     st.session_state["authenticated"] = True
@@ -43,6 +46,7 @@ def log_in(username):
 
 
 def log_out():
+    # Clear all session state on logout including any simulation results
     st.session_state["authenticated"] = False
     st.session_state.pop("username", None)
     st.session_state.pop("display_name", None)
@@ -51,7 +55,7 @@ def log_out():
 
 
 def render_sidebar_nav():
-    """Render consistent user info and logout across all pages."""
+    # Show the logged-in user's name and a logout button in the sidebar
     st.sidebar.markdown(f"**{st.session_state.get('display_name', 'User')}**")
     if st.sidebar.button("Log out", use_container_width=True):
         log_out()
@@ -59,6 +63,7 @@ def render_sidebar_nav():
 
 
 def require_login():
+    # Guard function — stop page rendering if the user is not authenticated
     if not is_logged_in():
         st.warning("Please log in before opening this page.")
         st.page_link("Home.py", label="Go to Login")
