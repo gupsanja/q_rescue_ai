@@ -1,0 +1,6 @@
+observation_id,incident_id,scenario_id,timestamp_utc,rainfall_24h_mm,rainfall_72h_mm,river_level_m,river_level_change_rate,soil_saturation_pct,upstream_dam_release_m3s,temperature_c,wind_speed_kmh,elevation_m,distance_to_river_km,drainage_capacity_index,urbanization_pct,population_density_per_km2,previous_flood_history
+OBS_sheffield_flood_response_(seed=52)_I1,I1,sheffield_flood_response_(seed=52),2026-03-14T08:30:00Z,141.9,243.9,0.76,0.27,40.7,20.8,0.1,18.5,89.6,3.9,0.42,87.2,4502.6,1
+OBS_sheffield_flood_response_(seed=52)_I2,I2,sheffield_flood_response_(seed=52),2026-03-14T08:30:00Z,141.9,232.6,1.57,0.54,71.8,53.9,-2.2,14.8,212.2,4.07,0.66,48.4,239.4,0
+OBS_sheffield_flood_response_(seed=52)_I3,I3,sheffield_flood_response_(seed=52),2026-03-14T08:30:00Z,141.9,256.0,6.22,-0.33,77.8,65.4,1.0,45.6,31.0,0.89,0.71,29.2,2566.0,0
+OBS_sheffield_flood_response_(seed=52)_I4,I4,sheffield_flood_response_(seed=52),2026-03-14T08:30:00Z,141.9,230.4,6.69,0.85,95.3,117.1,22.6,16.1,204.5,4.11,0.04,66.0,119.8,1
+OBS_sheffield_flood_response_(seed=52)_I5,I5,sheffield_flood_response_(seed=52),2026-03-14T08:30:00Z,141.9,258.0,5.07,0.5,80.3,45.2,8.7,3.7,168.8,3.98,0.15,72.0,4971.0,1
