@@ -10,6 +10,7 @@ _AI_SESSION_KEYS = (
     "ai_dashboard_payload",
     "ai_qubo_patch",
     "ai_predictions",
+    "ai_quantum_allocation",
     "ai_integration_error",
 )
 
@@ -43,8 +44,16 @@ def refresh_ai_integration(
 
     try:
         from q_rescue.domain.models import DisasterCategory
+        from q_rescue.services.allocation_output import (
+            AllocationSettings,
+            build_allocation_output,
+        )
         from q_rescue.services.validated_ai_pipeline import (
             run_validated_ai_prediction_pipeline,
+        )
+        from q_rescue.simulation.distance_matrix import (
+            build_distance_matrix,
+            build_severity_mapping,
         )
         from q_rescue.simulation.scenarios import generate_scenario_by_category
 
@@ -53,9 +62,9 @@ def refresh_ai_integration(
             DisasterCategory.FLOOD,
             config={
                 "simulation": {
-                    "ambulances": max(
-                        1,
-                        int(simulation.get("available_ambulances", 3)),
+                    "ambulances": min(
+                        4,
+                        max(1, int(simulation.get("available_ambulances", 3))),
                     ),
                     "incidents": 5,
                 }
@@ -69,6 +78,15 @@ def refresh_ai_integration(
                 output_dir=None,
             )
         )
+        quantum_allocation = build_allocation_output(
+            scenario,
+            build_distance_matrix(scenario),
+            build_severity_mapping(scenario),
+            settings=AllocationSettings(run_exact=True, run_qaoa=False),
+            request={"ai_patch": qubo_patch},
+            source="validated_ai_frontend",
+            ai_patch=qubo_patch,
+        )
     except (AssertionError, ImportError, OSError, ValueError) as exc:
         session_state["ai_integration_error"] = str(exc)
         return {
@@ -79,6 +97,7 @@ def refresh_ai_integration(
     session_state["ai_predictions"] = predictions
     session_state["ai_qubo_patch"] = qubo_patch
     session_state["ai_dashboard_payload"] = dashboard_payload
+    session_state["ai_quantum_allocation"] = quantum_allocation
     return {
         "source": "xgboost",
         "message": "Validated XGBoost predictions are ready for the dashboard and QUBO flow.",
