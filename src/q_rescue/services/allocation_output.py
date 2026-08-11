@@ -95,6 +95,7 @@ def build_allocation_output(
     settings: AllocationSettings | None = None,
     request: dict[str, Any] | None = None,
     source: str = "generated",
+    ai_patch: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run classical/quantum allocation comparisons and serialize the result."""
     settings = settings or AllocationSettings()
@@ -119,7 +120,7 @@ def build_allocation_output(
         severity_weight=settings.severity_weight,
         constraint_penalty=settings.constraint_penalty,
         critical_priority=settings.critical_priority,
-    )
+    ).apply_ai_patch(ai_patch)
     report = compare_solvers_with_inputs(
         scenario,
         distance_matrix,
