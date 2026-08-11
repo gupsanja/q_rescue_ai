@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from auth import require_login
-from prediction import predict_outcome, quantum_optimised_outcome, simulation_severity_score
+from prediction import get_prediction, quantum_optimised_outcome, simulation_severity_score
 from ui_theme import apply_global_style, page_header, render_table
 
 st.set_page_config(page_title="Comparison View", page_icon=":balance_scale:", layout="wide")
@@ -20,8 +20,31 @@ if "simulation_results" not in st.session_state:
 simulation = st.session_state["simulation_results"]
 
 # Generate AI predicted and quantum optimised outcomes from the simulation
-prediction = predict_outcome(simulation)
+prediction = get_prediction(simulation)
 quantum = quantum_optimised_outcome(prediction)
+
+# Replace the estimated ambulance count with the real AI-patched QUBO allocation
+allocation_output = st.session_state.get("ai_quantum_allocation", {})
+exact_result = allocation_output.get("solvers", {}).get("exact-enumeration", {})
+if exact_result.get("status") == "ok":
+    quantum["ambulances"] = len(exact_result.get("assignments", []))
+    quantum["_source"] = "ai-patched-qubo"
+    st.success("Quantum ambulance allocation uses the validated AI severity and demand patch.")
+
+    allocation_metrics = exact_result.get("metrics", {})
+    allocation_columns = st.columns(3)
+    allocation_columns[0].metric(
+        "QUBO energy",
+        f'{float(exact_result.get("qubo_energy", 0.0)):.2f}',
+    )
+    allocation_columns[1].metric(
+        "Incident coverage",
+        f'{float(allocation_metrics.get("coverage_percent", 0.0)):.1f}%',
+    )
+    allocation_columns[2].metric(
+        "Critical coverage",
+        f'{float(allocation_metrics.get("critical_coverage_percent", 0.0)):.1f}%',
+    )
 
 # Build the three-way comparison table across all key metrics
 comparison = pd.DataFrame(
