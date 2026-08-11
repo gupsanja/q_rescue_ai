@@ -40,9 +40,7 @@ def _validate_dashboard_payload(payload: dict, incident_ids: list[str]) -> None:
     for item in payload["predictions"]:
         confidence = float(item.get("confidence", -1.0))
         if not 0.0 <= confidence <= 1.0:
-            raise ValueError(
-                f"Dashboard confidence must be in [0, 1], got {confidence}"
-            )
+            raise ValueError(f"Dashboard confidence must be in [0, 1], got {confidence}")
 
 
 def run_validated_ai_prediction_pipeline(
