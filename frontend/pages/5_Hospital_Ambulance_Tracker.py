@@ -1,16 +1,14 @@
 import math
-from datetime import datetime
+from datetime import UTC, datetime
 
 import folium
 import pandas as pd
 import streamlit as st
-from streamlit_folium import st_folium
-
 from ambulance_data import available_ambulance_count, build_ambulance_routes
 from auth import require_login
 from data_sources import build_incident_locations, get_active_simulation_results
+from streamlit_folium import st_folium
 from ui_theme import apply_global_style, page_header, render_table
-
 
 st.set_page_config(
     page_title="Hospital & Ambulance Tracker",
@@ -153,7 +151,7 @@ else:
 
 @st.fragment(run_every=refresh_seconds if live_refresh else None)
 def live_tracker():
-    updated_at = datetime.now()
+    updated_at = datetime.now(UTC)
     tick = int(updated_at.timestamp() // refresh_seconds)
     updated_time = updated_at.strftime("%H:%M:%S")
 

@@ -1,0 +1,282 @@
+Q-RESCUE AI — MEMBER 3 IMPLEMENTATION NOTES
+Author  : Member 3 (Frontend & Visualisation Lead)
+Date    : 2025
+Stack   : Python, Streamlit, Plotly, Folium, Pandas
+Location: frontend/
+
+1. PROJECT OVERVIEW
+
+Q-Rescue AI is a disaster emergency response decision-support system for
+Sheffield. It simulates disaster scenarios and compares three approaches to
+allocating ambulances and rescue resources:
+
+  - Simulated      : rule-based calculation from user inputs
+  - AI Predicted   : XGBoost model forecasts (Member 5)
+  - Quantum Optimised : QUBO/QAOA quantum solver (Member 1)
+
+Member 3 owns the entire Streamlit frontend dashboard that ties all outputs
+together visually.
+
+2. DASHBOARD PAGES
+
+Entry point: frontend/Home.py
+Run command: python -m streamlit run Home.py  (from inside frontend/)
+             OR double-click frontend/run_app.bat on Windows
+
+Demo login accounts:
+  admin      / QRescue123
+  operator   / Operator123
+  responder  / Responder123
+
+Pages (frontend/pages/):
+
+  1_Disaster_Input.py
+    - Scenario input form: disaster type, Sheffield location, severity (1-4),
+      affected population, available ambulances, rescue teams, food units
+    - Synced manual + slider inputs for each numeric field
+    - Runs calculate_disaster_metrics() on submit
+    - Saves results to session state and local JSON cache
+    - Displays a results summary table after submission
+
+  2_Results_Dashboard.py
+    - Reads active simulation results (session > cache > sample CSV fallback)
+    - Displays summary, resource, and risk tables using render_table()
+
+  3_Comparison_View.py
+    - Three-way outcome comparison: Simulated / AI Predicted / Quantum Optimised
+    - Table of all key metrics side by side
+    - Grouped bar chart: resource demand comparison
+    - Bar chart: response time comparison
+    - Uses prediction.py for AI and quantum outcome calculations
+
+  4_Map_Visualisation.py
+    - Folium map of Sheffield with incident markers colour-coded by risk level
+    - Marker icons vary by incident type (flood, industrial, generic, city-wide)
+    - Selected location highlighted with a filled circle overlay
+    - Sheffield city operating area shown as a boundary circle
+    - Risk data table below the map
+
+  5_Hospital_Ambulance_Tracker.py
+    - Live-refresh Folium map (optional, configurable interval: 15/30/60s)
+    - Shows all hospitals (colour by capacity status) and ambulances on map
+    - Hospital table: capacity, available spaces, ambulance count, status
+    - Ambulance table: current area, speed, availability, assigned hospital
+    - Simulated live movement using time-based coordinate offsets
+
+  6_Individual_Ambulance_Tracking.py
+    - Select a single ambulance from the fleet
+    - Live-refresh route map with start, current position, and destination markers
+    - Progress bar showing journey completion percentage
+    - Metrics: status, speed, progress, ETA
+    - Trip details table
+
+  7_Prediction_View.py
+    - AI forecast view: severity score, estimated casualties, response time,
+      highest-risk Sheffield area
+    - Bar chart: available resources vs predicted demand
+    - Bar chart: predicted risk score by Sheffield area, colour-coded by level
+    - Automatically uses real XGBoost output when available (see Section 4)
+    - Falls back to deterministic heuristic with a clear warning banner
+
+3. SUPPORTING MODULES
+
+frontend/auth.py
+  - Demo login with 3 hardcoded accounts (admin, operator, responder)
+  - Session state management: authenticated, username, display_name, role
+  - require_login() guard used on every page
+  - render_sidebar_nav() shows username and logout button on all pages
+  NOTE: Credentials are plaintext for demo only. Must be replaced with
+        backend authentication before any real deployment.
+
+frontend/ui_theme.py
+  - apply_global_style(): injects dark emergency-control-centre CSS theme
+  - page_header(icon, title): consistent red-accent page header across all pages
+  - render_table(dataframe): renders a styled HTML table using .astype(str)
+    to prevent PyArrow mixed-type serialization errors
+
+frontend/adapters.py
+  - Maps UI-friendly values to backend domain types:
+      Severity (IntEnum): LOW=1, MEDIUM=2, HIGH=3, CRITICAL=4
+      DisasterCategory (Enum): generic, flood, industrial_accident,
+                                city_wide_emergency
+      Location(x, y), Ambulance(id, location, status)
+  - to_domain_payload(): converts simulation dict to backend-aligned JSON
+  - SHEFFIELD_LOCATIONS: lat/lon coordinates for 8 Sheffield areas
+
+frontend/data_sources.py
+  - get_active_simulation_results(): priority chain:
+      1. st.session_state["simulation_results"]
+      2. cache/latest_frontend_simulation.json
+      3. frontend/data/disaster_sample_data.csv (first row)
+  - build_incident_locations(): merges CSV sample data with active simulation
+  - build_comparison_metrics(): classical vs quantum metrics DataFrame
+  - load_disaster_sample_data(): cached CSV loader
+
+frontend/utils.py
+  - save_simulation_results(): writes simulation to cache/latest_frontend_simulation.json
+  - load_latest_simulation_results(): restores from cache on page reload
+  - calculate_disaster_metrics(): computes all derived metrics from inputs:
+      estimated_casualties, response_time, resources_needed,
+      optimisation_score, recommended_ambulances/rescue_teams/food_units,
+      critical/high/medium/low risk percentages
+
+frontend/prediction.py
+  - simulation_severity_score(): converts backend scale (1-4) to display (0-10)
+  - predict_outcome(): deterministic heuristic forecast from simulation inputs
+  - quantum_optimised_outcome(): efficiency-adjusted estimate from prediction
+  - predict_outcome_from_payload(): converts real M5 DashboardPredictionPayload
+    into the same dict shape as predict_outcome() (see Section 4)
+  - get_prediction(): unified entry point — uses real XGBoost output when
+    available, falls back to heuristic (see Section 4)
+
+frontend/ambulance_data.py
+  - 6 hardcoded Sheffield route templates (start, destination, coordinates,
+    priority, base speed)
+  - build_ambulance_routes(count): generates fleet rows cycling through templates
+  - available_ambulance_count(): reads from session state, defaults to 6
+
+4. MEMBER 5 AI MODEL INTEGRATION
+
+The prediction layer supports two modes:
+
+  MODE A — Heuristic (default, always works standalone)
+    predict_outcome(simulation) computes a deterministic forecast from the
+    scenario inputs using population pressure and resource gap calculations.
+    A warning banner is shown on page 7.
+
+  MODE B — Real XGBoost output (live integration)
+    When Member 5's pipeline runs build_dashboard_payload() and stores the
+    result in Streamlit session state, page 7 automatically switches to
+    showing real model output with a green success banner.
+
+    To activate MODE B, Member 5's pipeline must store:
+      st.session_state["ai_dashboard_payload"] = dashboard_payload
+
+    The dashboard_payload is a DashboardPredictionPayload dict produced by:
+      src/q_rescue/ai/predictor.build_dashboard_payload(predictions, scenario)
+
+Integration adapter (frontend/prediction.py):
+
+  predict_outcome_from_payload(payload, simulation)
+    Converts DashboardPredictionPayload fields to the prediction dict shape:
+    - dominant_severity -> forecast_severity (via _M5_SEVERITY_TO_SCORE map)
+    - mean_resource_demand -> ambulance/rescue team demand
+    - per-incident flood_severity_label + confidence -> risk_areas DataFrame
+    - Returns dict with "_source": "xgboost"
+
+  get_prediction(simulation)
+    Checks st.session_state["ai_dashboard_payload"] first.
+    Falls back to predict_outcome() if absent or empty.
+    Returns dict with "_source": "heuristic" or "xgboost"
+
+  Severity label to score mapping:
+    Low      -> 2.5
+    Moderate -> 5.0
+    High     -> 7.5
+    Severe   -> 10.0
+
+5. BUG FIXES APPLIED
+
+  FIX 1 — PyArrow mixed-type serialization error
+  File   : frontend/ui_theme.py — render_table()
+  File   : frontend/pages/1_Disaster_Input.py — Metric Value column
+  File   : frontend/pages/2_Results_Dashboard.py — Metric Value column
+  Error  : pyarrow.lib.ArrowTypeError: Expected bytes, got a 'int' object
+           Conversion failed for column Metric Value with type object
+  Cause  : DataFrames with mixed int/string columns cannot be serialized
+           by PyArrow (used internally by Streamlit's st.dataframe).
+  Fix    : render_table() now calls .astype(str) before .to_html() so all
+           columns are uniform string type before rendering.
+           Raw int values in Metric Value columns cast to str() explicitly.
+
+  FIX 2 — Deprecated use_container_width parameter
+  File   : frontend/pages/1_Disaster_Input.py
+  Change : use_container_width=True replaced with width="stretch" in
+           st.dataframe() call as required by newer Streamlit versions.
+
+6. FILES REMOVED (CLEANUP)
+
+The following files were removed as they were not needed for running the
+application:
+
+  flood_xgboost_project/scripts/05_build_report.js
+    Node.js report builder — generated .docx already committed, not part of
+    any Python pipeline.
+
+  flood_xgboost_project/outputs/Flood_XGBoost_Report_Phase2.docx
+    Generated binary report artefact — no reason to version-control it.
+
+  scripts/spike_osmnx.py
+    One-off exploration spike for testing the OSMnx road network library.
+    Not called by any pipeline.
+
+  scripts/generate_mock_assignments.py
+    Superseded by the real allocator. Only generated random fake assignments
+    for early testing.
+
+  Disaster_simulation_and optimisation_Model/notebooks/testing.ipynb
+    Scratch notebook used during development.
+
+  cache/3d7e98ae8a99fa3f2bf35bf2dd5d63345835d6cc.json
+  cache/6b2638cce44b0f20d723be41895cd676935721b0.json
+    Stale auto-generated cache files.
+
+  flood_xgboost_project/charts/ (entire folder)
+    Generated PNG chart artefacts. Not needed at runtime. Charts are
+    regenerated by flood_xgboost_project/scripts/02_train_evaluate.py.
+
+  Disaster_simulation_and optimisation_Model/notebooks/ (empty folder)
+  data/sample/ (empty folder with only a README)
+  data/road_network_cache/sheffield_drive.graphml
+    Large (~50MB) cached OSMnx graph. Re-downloaded automatically by
+    SheffieldRoadNetwork.load() when needed.
+
+  src/q_rescue/visualization/__init__.py (empty unused module)
+
+  .env.example
+    No .env usage anywhere in the codebase.
+
+  All __pycache__/ directories (recursively)
+    Compiled Python bytecode cache. Regenerated automatically on next run.
+
+7. HOW TO RUN
+
+MAIN DASHBOARD (recommended):
+
+  Windows — double-click:
+    frontend/run_app.bat
+
+  Manual:
+    cd frontend
+    python -m venv venv
+    venv\Scripts\activate
+    pip install -r requirements.txt
+    python -m streamlit run Home.py
+
+  Opens at: http://localhost:8501
+  Login   : admin / QRescue123
+
+BACKEND POC (classical vs quantum, no full UI):
+
+    python -m venv .venv
+    .venv\Scripts\activate
+    pip install -e ".[dev]"
+    python -m streamlit run app/streamlit_app.py
+
+TERMINAL ONLY (no UI):
+
+    pip install -e ".[dev]"
+    python scripts/run_poc.py
+
+TESTS:
+
+    pip install -e ".[dev]"
+    pytest
+
+8. DEPENDENCIES (frontend/requirements.txt)
+
+  streamlit>=1.57.0
+  pandas>=2.0.0
+  plotly>=5.20.0
+  folium>=0.16.0
+  streamlit-folium>=0.20.0

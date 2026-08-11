@@ -1,13 +1,27 @@
+# =============================================================================
+# data_sources.py — Data access layer for the dashboard.
+#
+# Responsibilities:
+#   - get_active_simulation_results(): returns the single scenario used
+#     across all pages. Priority chain:
+#       1. st.session_state["simulation_results"] (current run)
+#       2. cache/latest_frontend_simulation.json (last saved run)
+#       3. frontend/data/disaster_sample_data.csv (static fallback)
+#   - build_incident_locations(): merges CSV sample data with the active
+#     simulation to build the incident map rows.
+#   - build_comparison_metrics(): produces a classical vs quantum metrics
+#     DataFrame for comparison charts.
+#   - load_disaster_sample_data(): cached CSV loader for Sheffield sample data.
+# =============================================================================
+
 from __future__ import annotations
 
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-
 from adapters import SHEFFIELD_LOCATIONS
 from utils import calculate_disaster_metrics, load_latest_simulation_results
-
 
 ROOT_DIR = Path(__file__).resolve().parent
 SAMPLE_DATA_FILE = ROOT_DIR / "data" / "disaster_sample_data.csv"

@@ -1,8 +1,21 @@
+# =============================================================================
+# ui_theme.py — Shared styling and layout components.
+#
+# Responsibilities:
+#   - apply_global_style(): injects the dark emergency-control-centre CSS
+#     theme across all pages, including background image, sidebar, buttons,
+#     tables, and typography.
+#   - page_header(icon, title): renders the consistent red-accent page
+#     header used at the top of every dashboard page.
+#   - render_table(dataframe): renders a styled HTML table. Calls .astype(str)
+#     to prevent PyArrow mixed-type serialization errors when columns contain
+#     a mix of integers and strings.
+# =============================================================================
+
 import base64
 from pathlib import Path
 
 import streamlit as st
-
 
 ROOT_DIR = Path(__file__).resolve().parent
 BACKGROUND_IMAGE = ROOT_DIR / "assets" / "app_background.jpg"
@@ -144,6 +157,21 @@ def apply_global_style():
                 border: 1px solid rgba(255, 255, 255, 0.18) !important;
             }}
 
+            .stDownloadButton button {{
+                background: #ef232a !important;
+                color: #ffffff !important;
+                border: 0 !important;
+                border-radius: 999px !important;
+                font-weight: 900 !important;
+                text-transform: uppercase;
+                box-shadow: 0 14px 28px rgba(239, 35, 42, 0.30);
+            }}
+
+            .stDownloadButton button:hover {{
+                background: #ffffff !important;
+                color: #ef232a !important;
+            }}
+
             .stButton button,
             [data-testid="stFormSubmitButton"] button {{
                 background: #ef232a !important;
@@ -183,7 +211,21 @@ def apply_global_style():
             label {{
                 color: #ffffff !important;
                 font-weight: 900 !important;
-                letter-spacing: 0;
+                font-size: 1.35rem !important;
+                letter-spacing: 0.03em;
+                text-transform: uppercase;
+            }}
+
+            h1, .stMarkdown h1, .page-heading {{
+                font-size: 2.45rem !important;
+                text-transform: uppercase;
+            }}
+
+            [data-testid="stWidgetLabel"] p,
+            [data-testid="stWidgetLabel"] label,
+            label {{
+                font-size: 0.95rem !important;
+                text-transform: none;
             }}
 
             [data-testid="stWidgetLabel"] p::before,
@@ -253,6 +295,21 @@ def apply_global_style():
                 background: rgba(239, 35, 42, 0.92);
                 border-radius: 4px;
                 font-weight: 700;
+            }}
+
+            /* Export / download buttons in dataframe toolbar */
+            [data-testid="stElementToolbar"] button,
+            [data-testid="stElementToolbarButton"] {{
+                background: #ef232a !important;
+                color: #ffffff !important;
+                border-radius: 4px !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }}
+
+            [data-testid="stElementToolbar"] {{
+                opacity: 1 !important;
+                visibility: visible !important;
             }}
 
             .stMarkdown,

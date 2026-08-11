@@ -1,15 +1,13 @@
 import math
-from datetime import datetime
+from datetime import UTC, datetime
 
 import folium
 import pandas as pd
 import streamlit as st
-from streamlit_folium import st_folium
-
 from ambulance_data import available_ambulance_count, build_ambulance_routes
 from auth import require_login
+from streamlit_folium import st_folium
 from ui_theme import apply_global_style, page_header, render_table
-
 
 st.set_page_config(
     page_title="Individual Ambulance Tracking",
@@ -66,7 +64,7 @@ def distance_km(start_lat, start_lon, end_lat, end_lon):
 @st.fragment(run_every=refresh_seconds if live_refresh else None)
 def track_selected_ambulance():
     route = routes[routes["Ambulance ID"] == selected_ambulance].iloc[0]
-    now = datetime.now()
+    now = datetime.now(UTC)
     tick = int(now.timestamp() // refresh_seconds)
 
     route_index = routes.index[routes["Ambulance ID"] == selected_ambulance][0]

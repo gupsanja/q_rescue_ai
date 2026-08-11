@@ -1,8 +1,21 @@
+# =============================================================================
+# ambulance_data.py — Ambulance fleet and route sample data.
+#
+# Responsibilities:
+#   - Defines 6 Sheffield route templates covering key areas and hospitals.
+#   - build_ambulance_routes(count): generates a fleet DataFrame by cycling
+#     through route templates. Also attaches domain Ambulance objects via
+#     adapters.ambulance_from_route() for backend compatibility.
+#   - available_ambulance_count(): reads the available ambulance count from
+#     session state, defaulting to 6 if no simulation has been run.
+#
+# NOTE: Route data is static demo data. Replace with live dispatch system
+#       data when backend integration is available.
+# =============================================================================
+
 import pandas as pd
 import streamlit as st
-
 from adapters import ambulance_from_route
-
 
 ROUTE_TEMPLATES = [
     {
