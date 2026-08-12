@@ -42,6 +42,34 @@ Install Qiskit separately when working on Member 1's QAOA adapter:
 pip install -e ".[quantum,dev]"
 ```
 
+### Run the whole project folder
+
+Open PowerShell anywhere inside the extracted project folder and run the block
+below. It finds the frontend automatically, so the downloaded or extracted
+project folder can have any name.
+
+```powershell
+$project = Get-ChildItem -Path . -Recurse -File -Filter "Home.py" |
+    Where-Object { Test-Path (Join-Path $_.DirectoryName "requirements.txt") } |
+    Select-Object -First 1
+
+if (-not $project) {
+    Write-Error "Could not find Home.py with requirements.txt. Open PowerShell inside the extracted project folder and try again."
+    return
+}
+
+$frontend = $project.DirectoryName
+Set-Location $frontend
+
+if (-not (Test-Path ".venv\Scripts\python.exe")) {
+    python -m venv .venv
+}
+
+& ".\.venv\Scripts\python.exe" -m pip install --upgrade pip
+& ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
+& ".\.venv\Scripts\python.exe" -m streamlit run Home.py
+```
+
 ## Member 1 starting points
 
 1. Refine `AmbulanceAllocationQuboBuilder` in `src/q_rescue/quantum/qubo.py`.
