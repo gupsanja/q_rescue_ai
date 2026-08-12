@@ -120,7 +120,9 @@ def build_allocation_output(
         severity_weight=settings.severity_weight,
         constraint_penalty=settings.constraint_penalty,
         critical_priority=settings.critical_priority,
-    ).apply_ai_patch(ai_patch)
+    )
+    if ai_patch is not None and hasattr(builder, "apply_ai_patch"):
+        builder.apply_ai_patch(ai_patch)
     report = compare_solvers_with_inputs(
         scenario,
         distance_matrix,
