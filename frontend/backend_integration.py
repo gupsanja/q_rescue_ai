@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import logging
+import os
 import sys
+from collections.abc import MutableMapping
 from pathlib import Path
-from typing import MutableMapping
+
+LOGGER = logging.getLogger(__name__)
+MODEL_DIR_ENV_VAR = "Q_RESCUE_MODEL_DIR"
 
 _AI_SESSION_KEYS = (
     "ai_dashboard_payload",
@@ -18,6 +23,24 @@ _AI_SESSION_KEYS = (
 def _clear_ai_state(session_state: MutableMapping[str, object]) -> None:
     for key in _AI_SESSION_KEYS:
         session_state.pop(key, None)
+
+
+def _resolve_model_dir(repository_root: Path) -> Path:
+    configured_path = os.environ.get(MODEL_DIR_ENV_VAR)
+    if configured_path:
+        model_dir = Path(configured_path).expanduser()
+        if not model_dir.is_absolute():
+            model_dir = repository_root / model_dir
+    else:
+        model_dir = repository_root / "flood_xgboost_project" / "outputs"
+
+    model_dir = model_dir.resolve()
+    if not model_dir.is_dir():
+        raise FileNotFoundError(
+            f"AI model directory does not exist: {model_dir}. "
+            f"Set {MODEL_DIR_ENV_VAR} to the directory containing the flood XGBoost model files."
+        )
+    return model_dir
 
 
 def refresh_ai_integration(
@@ -57,7 +80,7 @@ def refresh_ai_integration(
         )
         from q_rescue.simulation.scenarios import generate_scenario_by_category
 
-        model_dir = repository_root / "flood_xgboost_project" / "outputs"
+        model_dir = _resolve_model_dir(repository_root)
         scenario = generate_scenario_by_category(
             DisasterCategory.FLOOD,
             config={
@@ -88,6 +111,14 @@ def refresh_ai_integration(
             ai_patch=qubo_patch,
         )
     except (AssertionError, ImportError, OSError, ValueError) as exc:
+        LOGGER.warning("Validated AI integration was unavailable", exc_info=True)
+        session_state["ai_integration_error"] = str(exc)
+        return {
+            "source": "heuristic",
+            "message": "Validated AI output was unavailable; existing heuristic output remains active.",
+        }
+    except Exception as exc:  # Keep unexpected backend failures from crashing Streamlit.
+        LOGGER.exception("Unexpected validated AI integration failure")
         session_state["ai_integration_error"] = str(exc)
         return {
             "source": "heuristic",
