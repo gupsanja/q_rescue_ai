@@ -42,7 +42,7 @@ Install Qiskit separately when working on Member 1's QAOA adapter:
 pip install -e ".[quantum,dev]"
 ```
 
-### Run the Member 3 frontend on Windows
+### Run the whole project folder
 
 Open PowerShell anywhere inside the extracted project folder and run the block
 below. It finds the frontend automatically, so the downloaded or extracted
