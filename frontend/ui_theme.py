@@ -34,11 +34,11 @@ def apply_global_style():
     background_uri = _background_data_uri()
     if background_uri:
         background_css = (
-            "linear-gradient(135deg, rgba(10, 9, 13, 0.96), rgba(28, 25, 34, 0.94)), "
+            "linear-gradient(135deg, rgba(232, 241, 248, 0.97), rgba(248, 251, 253, 0.96)), "
             f"url('{background_uri}')"
         )
     else:
-        background_css = "linear-gradient(135deg, #0b090d, #211d27)"
+        background_css = "linear-gradient(135deg, #e8f1f8, #f8fbfd)"
 
     st.markdown(
         f"""
@@ -47,7 +47,7 @@ def apply_global_style():
             body,
             [data-testid="stAppViewContainer"],
             [data-testid="stMain"] {{
-                background: #0b090d !important;
+                background: #e8f1f8 !important;
             }}
 
             .stApp {{
@@ -55,33 +55,33 @@ def apply_global_style():
                 background-size: cover;
                 background-position: center;
                 background-attachment: scroll;
-                color: #ffffff;
+                color: #212b32;
             }}
 
             [data-testid="stHeader"],
             .stAppHeader,
             [data-testid="stToolbar"] {{
-                background: #121016 !important;
+                background: #005eb8 !important;
                 color: #ffffff !important;
             }}
 
             [data-testid="stHeader"]::before {{
-                background: #121016 !important;
+                background: #005eb8 !important;
             }}
 
             [data-testid="stSidebar"] {{
-                background: rgba(18, 16, 22, 0.96);
+                background: rgba(0, 61, 120, 0.98);
                 backdrop-filter: none;
-                border-right: 1px solid rgba(239, 35, 42, 0.25);
+                border-right: 1px solid rgba(65, 196, 244, 0.45);
             }}
 
             [data-testid="stSidebar"] * {{
-                color: #f7f7fb !important;
+                color: #ffffff !important;
             }}
 
             [data-testid="stSidebar"] [aria-current="page"],
             [data-testid="stSidebar"] a:hover {{
-                background: #ef232a !important;
+                background: #0072ce !important;
                 color: #ffffff !important;
                 border-radius: 4px;
             }}
@@ -95,17 +95,17 @@ def apply_global_style():
             div[data-testid="stForm"],
             div[data-testid="stMetric"],
             div[data-testid="stAlert"] {{
-                background: rgba(34, 31, 39, 0.94);
-                border: 1px solid rgba(255, 255, 255, 0.10);
+                background: rgba(255, 255, 255, 0.97);
+                border: 1px solid rgba(0, 94, 184, 0.15);
                 border-radius: 6px;
-                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+                box-shadow: 0 10px 24px rgba(0, 61, 120, 0.12);
             }}
 
             div[data-testid="stDataFrame"],
             div[data-testid="stPlotlyChart"],
             iframe {{
                 border-radius: 6px;
-                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+                box-shadow: 0 10px 24px rgba(0, 61, 120, 0.10);
             }}
 
             [data-testid="stTable"] table {{
@@ -126,8 +126,8 @@ def apply_global_style():
                 width: 100%;
                 border-collapse: collapse;
                 table-layout: fixed;
-                background: #f5f5f7;
-                color: #17151b;
+                background: #ffffff;
+                color: #212b32;
                 border-radius: 6px;
                 overflow: hidden;
             }}
@@ -137,13 +137,13 @@ def apply_global_style():
                 text-align: left;
                 vertical-align: middle;
                 padding: 0.78rem 0.9rem;
-                border: 1px solid #d8d8dd;
-                color: #17151b !important;
+                border: 1px solid #d8e2ea;
+                color: #212b32 !important;
                 overflow-wrap: anywhere;
             }}
 
             .clear-table th {{
-                background: #ef232a;
+                background: #005eb8;
                 color: #ffffff !important;
                 font-weight: 900;
             }}
@@ -151,43 +151,43 @@ def apply_global_style():
             .stSelectbox div[data-baseweb="select"] > div,
             .stTextInput input,
             .stNumberInput input {{
-                background: #f5f5f7 !important;
-                color: #17151b !important;
+                background: #ffffff !important;
+                color: #212b32 !important;
                 border-radius: 4px !important;
-                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border: 1px solid #768692 !important;
             }}
 
             .stDownloadButton button {{
-                background: #ef232a !important;
+                background: #005eb8 !important;
                 color: #ffffff !important;
                 border: 0 !important;
                 border-radius: 999px !important;
                 font-weight: 900 !important;
                 text-transform: uppercase;
-                box-shadow: 0 14px 28px rgba(239, 35, 42, 0.30);
+                box-shadow: 0 14px 28px rgba(0, 94, 184, 0.24);
             }}
 
             .stDownloadButton button:hover {{
-                background: #ffffff !important;
-                color: #ef232a !important;
+                background: #003d78 !important;
+                color: #ffffff !important;
             }}
 
             .stButton button,
             [data-testid="stFormSubmitButton"] button {{
-                background: #ef232a !important;
+                background: #005eb8 !important;
                 color: #ffffff !important;
                 border: 0 !important;
                 border-radius: 999px !important;
                 font-weight: 900 !important;
                 text-transform: uppercase;
                 letter-spacing: 0;
-                box-shadow: 0 14px 28px rgba(239, 35, 42, 0.30);
+                box-shadow: 0 14px 28px rgba(0, 94, 184, 0.24);
             }}
 
             .stButton button:hover,
             [data-testid="stFormSubmitButton"] button:hover {{
-                background: #ffffff !important;
-                color: #ef232a !important;
+                background: #003d78 !important;
+                color: #ffffff !important;
             }}
 
             .page-title {{
@@ -196,10 +196,10 @@ def apply_global_style():
                 gap: 0.95rem;
                 margin: 0.4rem 0 0.9rem 0;
                 padding: 1.25rem 1.35rem;
-                background: rgba(18, 16, 22, 0.96);
-                border-bottom: 5px solid #ef232a;
+                background: rgba(0, 94, 184, 0.98);
+                border-bottom: 5px solid #41c4f4;
                 border-radius: 6px;
-                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+                box-shadow: 0 10px 24px rgba(0, 61, 120, 0.18);
             }}
 
             h1, h2, h3,
@@ -209,7 +209,7 @@ def apply_global_style():
             [data-testid="stWidgetLabel"] p,
             [data-testid="stWidgetLabel"] label,
             label {{
-                color: #ffffff !important;
+                color: #212b32 !important;
                 font-weight: 900 !important;
                 font-size: 1.35rem !important;
                 letter-spacing: 0.03em;
@@ -238,10 +238,10 @@ def apply_global_style():
                 height: 1.25rem;
                 margin-right: 0.45rem;
                 border-radius: 999px;
-                background: #ef232a;
+                background: #0072ce;
                 color: #ffffff;
                 font-size: 0.72rem;
-                box-shadow: 0 8px 18px rgba(239, 35, 42, 0.28);
+                box-shadow: 0 8px 18px rgba(0, 114, 206, 0.22);
             }}
 
             .stMarkdown h2::before,
@@ -254,11 +254,11 @@ def apply_global_style():
                 height: 1.6rem;
                 margin-right: 0.55rem;
                 border-radius: 999px;
-                background: #ef232a;
+                background: #0072ce;
                 color: #ffffff;
                 font-size: 0.8rem;
                 vertical-align: middle;
-                box-shadow: 0 10px 22px rgba(239, 35, 42, 0.26);
+                box-shadow: 0 10px 22px rgba(0, 114, 206, 0.20);
             }}
 
             .page-icon {{
@@ -268,11 +268,11 @@ def apply_global_style():
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                background: #ef232a;
+                background: #0072ce;
                 color: #ffffff;
                 font-size: 1.45rem;
                 font-weight: 900;
-                box-shadow: 0 14px 30px rgba(239, 35, 42, 0.35);
+                box-shadow: 0 14px 30px rgba(0, 114, 206, 0.25);
             }}
 
             .page-heading {{
@@ -292,7 +292,8 @@ def apply_global_style():
                 line-height: 1.6;
                 margin: 0 0 1.3rem 0;
                 padding: 0.95rem 1.1rem;
-                background: rgba(239, 35, 42, 0.92);
+                background: rgba(0, 114, 206, 0.12);
+                color: #212b32;
                 border-radius: 4px;
                 font-weight: 700;
             }}
@@ -300,7 +301,7 @@ def apply_global_style():
             /* Export / download buttons in dataframe toolbar */
             [data-testid="stElementToolbar"] button,
             [data-testid="stElementToolbarButton"] {{
-                background: #ef232a !important;
+                background: #005eb8 !important;
                 color: #ffffff !important;
                 border-radius: 4px !important;
                 opacity: 1 !important;
@@ -318,7 +319,19 @@ def apply_global_style():
             span,
             [data-testid="stMetricLabel"],
             [data-testid="stMetricValue"] {{
-                color: #f7f7fb !important;
+                color: #212b32 !important;
+            }}
+
+            .page-title h1,
+            .page-title .page-heading,
+            .stButton button *,
+            [data-testid="stFormSubmitButton"] button *,
+            .stDownloadButton button * {{
+                color: #ffffff !important;
+            }}
+
+            [data-testid="stSidebar"] * {{
+                color: #ffffff !important;
             }}
         </style>
         """,
