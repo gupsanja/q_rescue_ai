@@ -16,6 +16,7 @@ from adapters import (
     to_domain_payload,
 )
 from auth import require_login
+from backend_integration import refresh_ai_integration
 from ui_theme import apply_global_style, page_header, render_table
 from utils import (
     calculate_disaster_metrics,
@@ -203,7 +204,14 @@ if submitted:
     save_simulation_results(simulation_results)
     st.session_state["simulation_results"] = simulation_results
 
+    # Populate validated AI/QUBO session outputs without replacing the existing fallback flow
+    integration_status = refresh_ai_integration(simulation_results, st.session_state)
+
     st.success("Simulation completed successfully. Go to the Results page.")
+    if integration_status["source"] == "xgboost":
+        st.success(integration_status["message"])
+    elif st.session_state.get("ai_integration_error"):
+        st.warning(integration_status["message"])
 
     # All Metric Value entries are cast to str to prevent PyArrow type errors
     results_table = pd.DataFrame(
