@@ -35,16 +35,16 @@ st.markdown(
             align-items: center;
             justify-content: center;
             border-radius: 999px;
-            background: #ef232a;
+            background: #005eb8;
             color: #ffffff;
             font-size: 1.35rem;
             font-weight: 950;
-            box-shadow: 0 18px 38px rgba(239, 35, 42, 0.38);
+            box-shadow: 0 18px 38px rgba(0, 94, 184, 0.28);
         }
 
         .login-title h1,
         .home-title h1 {
-            color: #ffffff !important;
+            color: #212b32 !important;
             font-size: 3.4rem;
             line-height: 1;
             margin: 0;
@@ -53,7 +53,7 @@ st.markdown(
         }
 
         .login-title p {
-            color: #d7d4dc !important;
+            color: #4c6272 !important;
             margin-top: 0.8rem;
             font-weight: 700;
         }
@@ -69,7 +69,7 @@ st.markdown(
 
         .home-title h1 {
             font-size: 4rem;
-            text-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+            text-shadow: 0 8px 32px rgba(0, 61, 120, 0.14);
         }
 
         .home-red-line {
@@ -77,8 +77,8 @@ st.markdown(
             height: 7px;
             margin-top: 1.3rem;
             border-radius: 999px;
-            background: #ef232a;
-            box-shadow: 0 10px 24px rgba(239, 35, 42, 0.35);
+            background: #00a499;
+            box-shadow: 0 10px 24px rgba(0, 164, 153, 0.25);
         }
 
         @media (max-width: 700px) {

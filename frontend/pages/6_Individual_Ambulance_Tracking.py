@@ -115,7 +115,7 @@ def track_selected_ambulance():
 
     folium.PolyLine(
         route_points,
-        color="#ef232a",
+        color="#005eb8",
         weight=5,
         opacity=0.9,
     ).add_to(route_map)

@@ -68,7 +68,7 @@ folium.Circle(
     location=[53.3811, -1.4701],
     radius=6500,
     popup="Sheffield city operating area",
-    color="#1f8a70",
+    color="#00a499",
     fill=False,
     weight=3,
 ).add_to(m)

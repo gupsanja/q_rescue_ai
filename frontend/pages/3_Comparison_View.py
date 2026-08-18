@@ -82,7 +82,7 @@ comparison = pd.DataFrame(
     }
 )
 
-st.markdown("<h2 style='color:#ffffff;font-weight:900;font-size:1.6rem;text-transform:uppercase;letter-spacing:0.04em;'>Three-Way Outcome Table</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='color:#212b32;font-weight:900;font-size:1.6rem;text-transform:uppercase;letter-spacing:0.04em;'>Three-Way Outcome Table</h2>", unsafe_allow_html=True)
 render_table(comparison)
 
 # Filter to resource rows only for the grouped bar chart
@@ -93,17 +93,17 @@ resource_chart = px.bar(
     y=["Simulated", "AI Predicted", "Quantum Optimised"],
     barmode="group",
     title="Resource-Demand Comparison",
-    color_discrete_sequence=["#f2f2f2", "#ef232a", "#7d5fff"],
+    color_discrete_sequence=["#005eb8", "#00a499", "#7c3aed"],
     text_auto=True,
 )
 resource_chart.update_layout(
-    plot_bgcolor="#17141c",
-    paper_bgcolor="#17141c",
-    font_color="#ffffff",
+    plot_bgcolor="#ffffff",
+    paper_bgcolor="#ffffff",
+    font_color="#212b32",
     legend_title_text="Outcome",
     yaxis_title="Number of units",
-    title_font={"size": 18, "color": "#ffffff", "family": "Arial Black"},
-    legend={"font": {"color": "#ffffff", "size": 13}, "bgcolor": "rgba(0,0,0,0)", "title_font": {"color": "#ffffff"}},
+    title_font={"size": 18, "color": "#212b32", "family": "Arial Black"},
+    legend={"font": {"color": "#212b32", "size": 13}, "bgcolor": "rgba(0,0,0,0)", "title_font": {"color": "#212b32"}},
 )
 
 # Build a separate DataFrame for the response time bar chart
@@ -123,16 +123,16 @@ response_chart = px.bar(
     y="Response Time",
     title="Response-Time Comparison",
     color="Outcome",
-    color_discrete_sequence=["#f2f2f2", "#ef232a", "#7d5fff"],
+    color_discrete_sequence=["#005eb8", "#00a499", "#7c3aed"],
     text="Response Time",
 )
 response_chart.update_layout(
-    plot_bgcolor="#17141c",
-    paper_bgcolor="#17141c",
-    font_color="#ffffff",
+    plot_bgcolor="#ffffff",
+    paper_bgcolor="#ffffff",
+    font_color="#212b32",
     showlegend=False,
     yaxis_title="Response time (minutes)",
-    title_font={"size": 18, "color": "#ffffff", "family": "Arial Black"},
+    title_font={"size": 18, "color": "#212b32", "family": "Arial Black"},
 )
 response_chart.update_traces(texttemplate="%{text} min", textposition="outside")
 

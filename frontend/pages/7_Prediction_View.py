@@ -37,7 +37,7 @@ metric_columns[1].metric("Estimated casualties", f"{prediction['estimated_casual
 metric_columns[2].metric("Estimated response", f"{prediction['response_time']} min")
 metric_columns[3].metric("Highest-risk area", prediction["risk_areas"].iloc[0]["Area"])
 
-st.markdown("<h2 style='color:#ffffff;font-weight:900;font-size:1.6rem;text-transform:uppercase;letter-spacing:0.04em;'>Predicted Resource Demand</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='color:#212b32;font-weight:900;font-size:1.6rem;text-transform:uppercase;letter-spacing:0.04em;'>Predicted Resource Demand</h2>", unsafe_allow_html=True)
 
 # Build a DataFrame comparing available resources against predicted demand
 resource_demand = pd.DataFrame(
@@ -61,18 +61,18 @@ resource_chart = px.bar(
     x="Resource",
     y=["Available", "Predicted demand"],
     barmode="group",
-    color_discrete_sequence=["#f2f2f2", "#ef232a"],
+    color_discrete_sequence=["#005eb8", "#00a499"],
     text_auto=True,
     title="Available Resources vs Predicted Demand",
 )
 resource_chart.update_layout(
-    plot_bgcolor="#17141c",
-    paper_bgcolor="#17141c",
-    font_color="#ffffff",
+    plot_bgcolor="#ffffff",
+    paper_bgcolor="#ffffff",
+    font_color="#212b32",
     legend_title_text="",
     yaxis_title="Number of units",
-    title_font={"size": 18, "color": "#ffffff", "family": "Arial Black"},
-    legend={"font": {"color": "#ffffff", "size": 13}, "bgcolor": "rgba(0,0,0,0)"},
+    title_font={"size": 18, "color": "#212b32", "family": "Arial Black"},
+    legend={"font": {"color": "#212b32", "size": 13}, "bgcolor": "rgba(0,0,0,0)"},
 )
 
 # Show the chart and the raw data table side by side
@@ -82,7 +82,7 @@ with resource_col:
 with table_col:
     render_table(resource_demand)
 
-st.markdown("<h2 style='color:#ffffff;font-weight:900;font-size:1.6rem;text-transform:uppercase;letter-spacing:0.04em;'>Forecast Risk Areas</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='color:#212b32;font-weight:900;font-size:1.6rem;text-transform:uppercase;letter-spacing:0.04em;'>Forecast Risk Areas</h2>", unsafe_allow_html=True)
 
 # Bar chart of predicted risk score per Sheffield area, colour-coded by level
 risk_chart = px.bar(
@@ -94,19 +94,19 @@ risk_chart = px.bar(
     title="Predicted Risk by Sheffield Area",
     category_orders={"Risk Level": ["Low", "Medium", "High", "Critical"]},
     color_discrete_map={
-        "Low": "#2ca25f",
-        "Medium": "#3182bd",
-        "High": "#ff9f1c",
-        "Critical": "#ef232a",
+        "Low": "#007f3b",
+        "Medium": "#005eb8",
+        "High": "#0072ce",
+        "Critical": "#003087",
     },
 )
 risk_chart.update_layout(
-    plot_bgcolor="#17141c",
-    paper_bgcolor="#17141c",
-    font_color="#ffffff",
+    plot_bgcolor="#ffffff",
+    paper_bgcolor="#ffffff",
+    font_color="#212b32",
     yaxis={"title": "Risk score (0–10)", "range": [0, 10.8], "dtick": 1},
-    title_font={"size": 18, "color": "#ffffff", "family": "Arial Black"},
-    legend={"font": {"color": "#ffffff", "size": 13}, "bgcolor": "rgba(0,0,0,0)", "title_font": {"color": "#ffffff"}},
+    title_font={"size": 18, "color": "#212b32", "family": "Arial Black"},
+    legend={"font": {"color": "#212b32", "size": 13}, "bgcolor": "rgba(0,0,0,0)", "title_font": {"color": "#212b32"}},
 )
 
 st.plotly_chart(risk_chart, width="stretch")
