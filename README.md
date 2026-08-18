@@ -70,6 +70,14 @@ if (-not (Test-Path ".venv\Scripts\python.exe")) {
 & ".\.venv\Scripts\python.exe" -m streamlit run Home.py
 ```
 
+```
+Demo login accounts:
+  admin      / QRescue123
+  operator   / Operator123
+  responder  / Responder123
+
+```
+
 ## Member 1 starting points
 
 1. Refine `AmbulanceAllocationQuboBuilder` in `src/q_rescue/quantum/qubo.py`.
